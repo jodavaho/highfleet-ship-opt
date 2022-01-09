@@ -1,5 +1,6 @@
+LIBA=-lscip
 all: build/
-	gcc src/main.c -o build/main
+	g++ src/main.cpp -o build/main $(LIBA)
 
 build/:
 	mkdir -p build
