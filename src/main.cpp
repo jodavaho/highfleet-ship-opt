@@ -3,30 +3,169 @@
 #include <scip/scip.h>
 #include <scip/scipdefplugins.h>
 #include <vector>
+#include <string>
 
 
 SCIP* g = NULL;
-std::vector<SCIP_VAR*> Xi;
-std::vector<SCIP_CONS*> cons_nl;
+std::vector<SCIP_VAR*> vars;
+std::vector<SCIP_EXPR*> ex_vars;
+std::vector<SCIP_EXPR*> sum_res;
+std::vector<SCIP_EXPR*> exprs;
+std::vector<SCIP_CONS*> cons;
 SCIP_SOL * solution = NULL;
 SCIP_CONSHDLR * conshdlr_nl;
 
 struct SCIPLOCK{
   SCIPLOCK(){}
   ~SCIPLOCK(){
-    for (auto ptr: cons_nl){
+    for (auto ptr: cons){
       SCIPreleaseCons(g,&ptr);      
     }
-    for (auto ptr: Xi){
+    for (auto ptr: sum_res){
+      SCIPreleaseExpr(g,&ptr);
+    }
+    for (auto ptr: exprs){
+      SCIPreleaseExpr(g,&ptr);
+    }
+    for (auto ptr: ex_vars){
+      SCIPreleaseExpr(g,&ptr);
+    }
+    for (auto ptr: vars){
       SCIPreleaseVar(g,&ptr);
     }
     if(g){SCIPfree(&g);}
   }
 };
 
+struct module{
+  std::string name;
+  static const size_t n_res=8;
+  double cost;
+  double weight;
+  double energy;
+  double crew;
+  double thrust;
+  double fuel_cap;
+  double fuel_rate;
+  double firepower;
+  std::pair<double,double> sz;
+};
+
+extern module Bridge;
+
+int solve(
+    std::vector<module> mods,
+    std::vector<module> required = {Bridge}
+    ){
+  SCIPLOCK lock;//RAII-ish
+  SCIP_CALL( SCIPcreate(&g));
+  SCIP_CALL( SCIPincludeDefaultPlugins(g));
+  SCIP_CALL( SCIPcreateProbBasic(g, "Highfleet_Component_Selection"));
+  SCIP_CALL( SCIPsetObjsense(g, SCIP_OBJSENSE_MINIMIZE));
+  size_t N = mods.size();
+  vars.reserve(N);
+  ex_vars.reserve(N);
+  sum_res.reserve(module::n_res);//sum of all resources
+  exprs.reserve(module::n_res); 
+ 
+  //create optimization variables for n_<mod> for each mod
+  for (size_t i=0;i<N;i++){
+    auto m = mods[i];
+    const char* nam = ("n_"+m.name).c_str();
+    auto varp = &vars[i];
+    //create var for count
+    SCIP_CALL ( SCIPcreateVarBasic(g,varp, nam,0.0,SCIPinfinity(g), 0.0, SCIP_VARTYPE_INTEGER) ) ;
+    SCIP_CALL ( SCIPaddVar(g,*varp) );
+    auto ex_varp = &ex_vars[i];
+    //create xprvar for count
+    SCIP_CALL ( SCIPcreateExprVar(g,ex_varp,*varp,NULL,NULL) );
+  }
+
+  //create the sum_of(resource) for each resource
+
+  SCIP_EXPR *sum_fuel_cap=nullptr;
+  {
+    std::vector<double> vals(N);
+    for (size_t i=0;i<N;i++){
+      vals[i] = mods[i].fuel_cap;
+    }
+    SCIP_CALL ( SCIPcreateExprSum(g,&sum_fuel_cap,N,ex_vars.data(),vals.data(),1.0,NULL,NULL));
+  }
+
+  SCIP_EXPR *sum_fuel_rate=nullptr;
+  {
+    std::vector<double> vals(N);
+    for (size_t i=0;i<N;i++){
+      vals[i] = mods[i].fuel_rate;
+    }
+    SCIP_CALL ( SCIPcreateExprSum(g,&sum_fuel_rate,N,ex_vars.data(),vals.data(),1.0,NULL,NULL));
+  }
+
+  SCIP_EXPR *sum_thrust=nullptr;
+  {
+    std::vector<double> vals(N);
+    for (size_t i=0;i<N;i++){
+      vals[i] = mods[i].thrust;
+    }
+    SCIP_CALL ( SCIPcreateExprSum(g,&sum_thrust,N,ex_vars.data(),vals.data(),1.0,NULL,NULL));
+  }
+   
+  SCIP_EXPR *sum_cost=nullptr;
+  {
+    std::vector<double> vals(N);
+    for (size_t i=0;i<N;i++){
+      vals[i] = mods[i].cost;
+    }
+    SCIP_CALL ( SCIPcreateExprSum(g,&sum_cost,N,ex_vars.data(),vals.data(),1.0,NULL,NULL));
+  }
+
+  SCIP_EXPR *sum_weight=nullptr;
+  {
+    std::vector<double> vals(N);
+    for (size_t i=0;i<N;i++){
+      vals[i] = mods[i].weight;
+    }
+    SCIP_CALL ( SCIPcreateExprSum(g,&sum_weight,N,ex_vars.data(),vals.data(),1.0,NULL,NULL));
+  }
+
+  SCIP_EXPR *sum_crew=nullptr;
+  {
+    std::vector<double> vals(N);
+    for (size_t i=0;i<N;i++){
+      vals[i] = mods[i].crew;
+    }
+    SCIP_CALL ( SCIPcreateExprSum(g,&sum_crew,N,ex_vars.data(),vals.data(),1.0,NULL,NULL));
+  }
+  
+  SCIP_EXPR *sum_energy=nullptr;
+  {
+    std::vector<double> vals(N);
+    for (size_t i=0;i<N;i++){
+      vals[i] = mods[i].energy;
+    }
+    SCIP_CALL ( SCIPcreateExprSum(g,&sum_energy,N,ex_vars.data(),vals.data(),1.0,NULL,NULL));
+  }
+
+  SCIP_EXPR *sum_firepower=nullptr;
+  {
+    std::vector<double> vals(N);
+    for (size_t i=0;i<N;i++){
+      vals[i] = mods[i].firepower;
+    }
+    SCIP_CALL ( SCIPcreateExprSum(g,&sum_firepower,N,ex_vars.data(),vals.data(),1.0,NULL,NULL));
+  }
+
+  return 0;
+}
+
+int execopt(int argc, char** argv){
+
+  return 0;
+}
+
+
 int exectest(int argc, char** argv){
-  //https://www.zib.de/hendel/talk/2019/monash_using_scip_to_solve/slides.pdf
-  SCIPLOCK lock;//RAII
+  SCIPLOCK lock;//RAII-ish
   SCIP_CALL( SCIPcreate(&g));
   SCIP_CALL( SCIPincludeDefaultPlugins(g));
   SCIP_CALL( SCIPcreateProbBasic(g, "Highfleet_Component_Selection"));
@@ -67,7 +206,6 @@ int exectest(int argc, char** argv){
   {
     SCIPinfoMessage(g, NULL, "\nSolution:\n");
     SCIP_CALL( SCIPprintSol(g, SCIPgetBestSol(g), NULL, FALSE) );
-
   }
 
   return SCIP_OKAY;

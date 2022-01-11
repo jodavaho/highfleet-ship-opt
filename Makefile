@@ -1,8 +1,10 @@
 LIBA=-lscip
-all: build/
-	g++ -g src/main.cpp -o build/main $(LIBA)
+CCF=-g
 
-build/:
+build/main: src/main.cpp build
+	g++ $(CCF) $< -o $@ $(LIBA)
+
+build:
 	mkdir -p build
 
 clean:
