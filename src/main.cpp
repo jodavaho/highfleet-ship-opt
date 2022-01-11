@@ -2,7 +2,6 @@
 #include <iostream>
 #include <scip/scip.h>
 #include <scip/scipdefplugins.h>
-#include <scip/type_nlhdlr.h>
 #include <vector>
 
 
@@ -42,11 +41,14 @@ int exectest(int argc, char** argv){
   //pass those vars into expressions?
   //add expression to constraint
   //add constraint to problem
-  SCIP_EXPR* ex;
-  SCIP_VAR* v;
-  SCIPcreateVarBasic(g,&v, "a",0,SCIPinfinity(g), 1.0, SCIP_VARTYPE_INTEGER);
-  SCIPcreateExprProduct(g,&ex,2,
-  SCIPcreateConsNonlinear(g,&c, "Ratio",ex, 0.0, 1.0, 
+  SCIP_EXPR* prod;
+  SCIP_EXPR* ex_vars[10];
+  SCIP_VAR* vars[10];
+  //create vars, expressions w/ thsoe vars, combine exprs, and set constraints
+  SCIPcreateVarBasic(g,&vars[0], "a",0,SCIPinfinity(g), 1.0, SCIP_VARTYPE_INTEGER);//etc
+  SCIPcreateExprVar(g,&ex_vars[0],vars[0],nullptr,nullptr);//etc
+  SCIPcreateExprProduct(g,&prod,10,ex_vars,1.0,NULL,NULL);
+  SCIPcreateConsNonlinear(g,&c, "Ratio",prod, 0.0, 1.0, 
       1, 1, 1, 1, 1, 
       0, 0, 0, 0);
 
