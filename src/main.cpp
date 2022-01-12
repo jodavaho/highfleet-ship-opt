@@ -155,6 +155,32 @@ int solve(
     SCIP_CALL ( SCIPcreateExprSum(g,&sum_firepower,N,ex_vars.data(),vals.data(),1.0,NULL,NULL));
   }
 
+#define CONS_DEFAULT 1, 1, 1, 1, 1, 0, 0, 0, 0
+  //add minimum constraints
+  //T/W >= desired
+  double minimum_twr_value = 1.0;
+  SCIP_EXPR *inv_wt, *twr, *twrc[2]={inv_wt,twr};
+  SCIP_CONS *minimum_twr_cons;
+  SCIP_CALL ( SCIPcreateExprSignpower(g,&inv_wt,sum_weight,-1.0,NULL,NULL));
+  SCIP_CALL ( SCIPcreateExprProduct(g,&twr,2,twrc,1.0,NULL,NULL));
+  SCIP_CALL ( SCIPcreateConsNonlinear(g,&minimum_twr_cons, "Minimum_TWR" ,twr, minimum_twr_value, SCIPinfinity(g), CONS_DEFAULT));
+  SCIP_CALL ( SCIPaddCons(g,minimum_twr_cons) );
+
+  //cost =< desired
+  SCIP_CONS* maximum_cost_cons;
+  double maximum_cost_value=300000.0;
+  SCIP_CALL ( SCIPcreateConsNonlinear(g,&maximum_cost_cons, "Maximum_cost" ,sum_cost, 0.0, maximum_cost_value, CONS_DEFAULT));
+  SCIP_CALL ( SCIPaddCons(g,maximum_cost_cons) );
+ 
+  //constrain to add included modules -- no matter what
+  //
+
+  //TODO: expr fuel_time: fuel / (-fuel_rate) 
+  //TODO: expr speed: factor* twr
+  //TODO: Range: fuel_time * speed * factor
+  //TODO: Weight: sum_weight< X
+  //TODO: Combat Time: fuel_time * factor
+
   return 0;
 }
 
