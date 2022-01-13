@@ -4,6 +4,7 @@
 #include <scip/scipdefplugins.h>
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 
 SCIP* g = NULL;
@@ -67,6 +68,15 @@ int solve(
   ex_vars.reserve(N);
   sum_res.reserve(module::n_res);//sum of all resources
   exprs.reserve(module::n_res); 
+
+  //tally up the required modules first
+  std::unordered_map<std::string,size_t> mod_minimums;
+  for (const auto &mod: mods){
+    mod_minimums[mod.name]=0;
+  }
+  for (const auto &req: required){
+    mod_minimums[req.name]++;
+  }
  
   //create optimization variables for n_<mod> for each mod
   for (size_t i=0;i<N;i++){
@@ -74,7 +84,9 @@ int solve(
     const char* nam = ("n_"+m.name).c_str();
     auto varp = &vars[i];
     //create var for count
-    SCIP_CALL ( SCIPcreateVarBasic(g,varp, nam,0.0,SCIPinfinity(g), 0.0, SCIP_VARTYPE_INTEGER) ) ;
+    size_t min = mod_minimums[m.name];
+    assert(min>=0);
+    SCIP_CALL ( SCIPcreateVarBasic(g,varp, nam, min, SCIPinfinity(g), 1.0, SCIP_VARTYPE_INTEGER) ) ;
     SCIP_CALL ( SCIPaddVar(g,*varp) );
     auto ex_varp = &ex_vars[i];
     //create xprvar for count
@@ -176,7 +188,6 @@ int solve(
 #define CONS_DEFAULT 1, 1, 1, 1, 1, 0, 0, 0, 0
   //add minimum constraints
   //T/W >= desired
-  //TODO: Parameterize
   double minimum_twr_value = 1.0;
   SCIP_EXPR *inv_wt, *twr, *twrc[2]={inv_wt,twr};
   SCIP_CONS *minimum_twr_cons;
@@ -187,38 +198,31 @@ int solve(
 
   //cost =< desired
   SCIP_CONS* maximum_cost_cons;
-  //TODO: Parameterize
   double maximum_cost_value=300000.0;
   SCIP_CALL ( SCIPcreateConsNonlinear(g,&maximum_cost_cons, "Maximum_cost" ,sum_cost, 0.0, maximum_cost_value, CONS_DEFAULT));
   SCIP_CALL ( SCIPaddCons(g,maximum_cost_cons) );
  
-  //constrain to add included modules -- no matter what
-  //
-
-
   //range >= desired
   SCIP_CONS* minimum_range_cons;
-  //TODO: Parameterize
   double minimum_range_value=10.0;
   SCIP_CALL ( SCIPcreateConsNonlinear(g,&minimum_range_cons, "Minimum_Range" ,exp_range,minimum_range_value, SCIPinfinity(g), CONS_DEFAULT));
   SCIP_CALL ( SCIPaddCons(g,minimum_range_cons) );
     
   //speed>= desired
   SCIP_CONS* minimum_speed_cons;
-  //TODO: Parameterize
   double minimum_speed_value=0.0;//it's actually 90, twr>1.0 and speed = 90*twr
   SCIP_CALL ( SCIPcreateConsNonlinear(g,&minimum_speed_cons, "Minumum_Speed" ,exp_speed, minimum_speed_value, SCIPinfinity(g), CONS_DEFAULT));
   SCIP_CALL ( SCIPaddCons(g,minimum_speed_cons) );
 
 
-  //TODO: Weight: sum_weight< X
+  //Weight: sum_weight< X
   SCIP_CONS* maximum_weight_cons;
   double maximum_weight_value=SCIPinfinity(g);
   SCIP_CALL ( SCIPcreateConsNonlinear(g,&maximum_weight_cons, "Maximum_Weight", sum_weight,0.0,maximum_weight_value, CONS_DEFAULT) );
   SCIP_CALL ( SCIPaddCons(g,maximum_weight_cons));
   
   //TODO: Combat Time: fuel_time * factor
-
+  
   return 0;
 }
 
