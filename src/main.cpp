@@ -93,21 +93,28 @@ int solve(
   }
 
   SCIP_EXPR *sum_fuel_rate=nullptr;
+  SCIP_EXPR *sum_fuel_rate_3p6=nullptr;
+  SCIP_EXPR *inv_sum_fuel_rate_3p6=nullptr;
   {
     std::vector<double> vals(N);
     for (size_t i=0;i<N;i++){
       vals[i] = mods[i].fuel_rate;
     }
     SCIP_CALL ( SCIPcreateExprSum(g,&sum_fuel_rate,N,ex_vars.data(),vals.data(),1.0,NULL,NULL));
+    //later need 1/(3.6 x)
+    SCIP_CALL ( SCIPcreateExprSum(g,&sum_fuel_rate_3p6,N,ex_vars.data(),vals.data(),3.6,NULL,NULL));
+    SCIP_CALL ( SCIPcreateExprSignpower(g,&inv_sum_fuel_rate_3p6,sum_fuel_rate_3p6,-1.0,NULL,NULL));
   }
 
   SCIP_EXPR *sum_thrust=nullptr;
+  SCIP_EXPR *exp_speed =nullptr;
   {
     std::vector<double> vals(N);
     for (size_t i=0;i<N;i++){
       vals[i] = mods[i].thrust;
     }
     SCIP_CALL ( SCIPcreateExprSum(g,&sum_thrust,N,ex_vars.data(),vals.data(),1.0,NULL,NULL));
+    SCIP_CALL ( SCIPcreateExprSum(g,&exp_speed,N,ex_vars.data(),vals.data(),90.0,NULL,NULL));
   }
    
   SCIP_EXPR *sum_cost=nullptr;
@@ -155,9 +162,21 @@ int solve(
     SCIP_CALL ( SCIPcreateExprSum(g,&sum_firepower,N,ex_vars.data(),vals.data(),1.0,NULL,NULL));
   }
 
+  //TODO: Range: fuel_time * speed * factor
+  //via /u/NoamChomskyForever
+  //Range = Fuel Capacity * 1000 / Total Fuel Needed / 3600 * Speed
+  //Range = sum_fuel_cap / (3.6 sum_fuel_rate) * speed
+  SCIP_EXPR *exp_range=nullptr;
+  {
+    SCIP_EXPR* terms[3]={sum_fuel_cap,inv_sum_fuel_rate_3p6,exp_speed};
+    SCIP_CALL ( SCIPcreateExprProduct(g,&exp_range,3,terms,1.0,NULL,NULL));
+  }
+
+
 #define CONS_DEFAULT 1, 1, 1, 1, 1, 0, 0, 0, 0
   //add minimum constraints
   //T/W >= desired
+  //TODO: Parameterize
   double minimum_twr_value = 1.0;
   SCIP_EXPR *inv_wt, *twr, *twrc[2]={inv_wt,twr};
   SCIP_CONS *minimum_twr_cons;
@@ -168,6 +187,7 @@ int solve(
 
   //cost =< desired
   SCIP_CONS* maximum_cost_cons;
+  //TODO: Parameterize
   double maximum_cost_value=300000.0;
   SCIP_CALL ( SCIPcreateConsNonlinear(g,&maximum_cost_cons, "Maximum_cost" ,sum_cost, 0.0, maximum_cost_value, CONS_DEFAULT));
   SCIP_CALL ( SCIPaddCons(g,maximum_cost_cons) );
@@ -175,10 +195,28 @@ int solve(
   //constrain to add included modules -- no matter what
   //
 
-  //TODO: expr fuel_time: fuel / (-fuel_rate) 
-  //TODO: expr speed: factor* twr
-  //TODO: Range: fuel_time * speed * factor
+
+  //range >= desired
+  SCIP_CONS* minimum_range_cons;
+  //TODO: Parameterize
+  double minimum_range_value=10.0;
+  SCIP_CALL ( SCIPcreateConsNonlinear(g,&minimum_range_cons, "Minimum_Range" ,exp_range,minimum_range_value, SCIPinfinity(g), CONS_DEFAULT));
+  SCIP_CALL ( SCIPaddCons(g,minimum_range_cons) );
+    
+  //speed>= desired
+  SCIP_CONS* minimum_speed_cons;
+  //TODO: Parameterize
+  double minimum_speed_value=0.0;//it's actually 90, twr>1.0 and speed = 90*twr
+  SCIP_CALL ( SCIPcreateConsNonlinear(g,&minimum_speed_cons, "Minumum_Speed" ,exp_speed, minimum_speed_value, SCIPinfinity(g), CONS_DEFAULT));
+  SCIP_CALL ( SCIPaddCons(g,minimum_speed_cons) );
+
+
   //TODO: Weight: sum_weight< X
+  SCIP_CONS* maximum_weight_cons;
+  double maximum_weight_value=SCIPinfinity(g);
+  SCIP_CALL ( SCIPcreateConsNonlinear(g,&maximum_weight_cons, "Maximum_Weight", sum_weight,0.0,maximum_weight_value, CONS_DEFAULT) );
+  SCIP_CALL ( SCIPaddCons(g,maximum_weight_cons));
+  
   //TODO: Combat Time: fuel_time * factor
 
   return 0;
