@@ -1,7 +1,7 @@
 LIBA=-lscip
-CCF=-g
+CCF=-g -std=c++2a
 
-build/main: src/main.cpp build
+build/main: src/main.cpp src/modules.hpp build
 	g++ $(CCF) $< -o $@ $(LIBA)
 
 build:

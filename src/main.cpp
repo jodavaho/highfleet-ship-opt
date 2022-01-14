@@ -2,32 +2,22 @@
 #include <iostream>
 #include <scip/scip.h>
 #include <scip/scipdefplugins.h>
-#include <vector>
+#include <set>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
+#include "modules.hpp"
 
 SCIP* g = NULL;
 std::vector<SCIP_VAR*> vars;
 std::vector<SCIP_EXPR*> ex_vars;
-std::vector<SCIP_EXPR*> sum_res;
-std::vector<SCIP_EXPR*> exprs;
-std::vector<SCIP_CONS*> cons;
 SCIP_SOL * solution = NULL;
 SCIP_CONSHDLR * conshdlr_nl;
 
 struct SCIPLOCK{
   SCIPLOCK(){}
   ~SCIPLOCK(){
-    for (auto ptr: cons){
-      SCIPreleaseCons(g,&ptr);      
-    }
-    for (auto ptr: sum_res){
-      SCIPreleaseExpr(g,&ptr);
-    }
-    for (auto ptr: exprs){
-      SCIPreleaseExpr(g,&ptr);
-    }
     for (auto ptr: ex_vars){
       SCIPreleaseExpr(g,&ptr);
     }
@@ -38,26 +28,13 @@ struct SCIPLOCK{
   }
 };
 
-struct module{
-  std::string name;
-  static const size_t n_res=8;
-  double cost;
-  double weight;
-  double energy;
-  double crew;
-  double thrust;
-  double fuel_cap;
-  double fuel_rate;
-  double firepower;
-  std::pair<double,double> sz;
-};
-
-extern module Bridge;
-
 int solve(
-    std::vector<module> mods,
-    std::vector<module> required = {Bridge}
-    ){
+    std::vector<size_t> &out_counts,
+    const std::vector<module> &mods,
+    const std::vector<module> required={} 
+    )
+{
+
   SCIPLOCK lock;//RAII-ish
   SCIP_CALL( SCIPcreate(&g));
   SCIP_CALL( SCIPincludeDefaultPlugins(g));
@@ -66,8 +43,6 @@ int solve(
   size_t N = mods.size();
   vars.reserve(N);
   ex_vars.reserve(N);
-  sum_res.reserve(module::n_res);//sum of all resources
-  exprs.reserve(module::n_res); 
 
   //tally up the required modules first
   std::unordered_map<std::string,size_t> mod_minimums;
@@ -106,7 +81,9 @@ int solve(
 
   SCIP_EXPR *sum_fuel_rate=nullptr;
   SCIP_EXPR *sum_fuel_rate_3p6=nullptr;
+  SCIP_EXPR *sum_fuel_rate_50=nullptr;
   SCIP_EXPR *inv_sum_fuel_rate_3p6=nullptr;
+  SCIP_EXPR *inv_sum_fuel_rate_50=nullptr;
   {
     std::vector<double> vals(N);
     for (size_t i=0;i<N;i++){
@@ -116,17 +93,18 @@ int solve(
     //later need 1/(3.6 x)
     SCIP_CALL ( SCIPcreateExprSum(g,&sum_fuel_rate_3p6,N,ex_vars.data(),vals.data(),3.6,NULL,NULL));
     SCIP_CALL ( SCIPcreateExprSignpower(g,&inv_sum_fuel_rate_3p6,sum_fuel_rate_3p6,-1.0,NULL,NULL));
+    //later need 1/(50 x)
+    SCIP_CALL ( SCIPcreateExprSum(g,&sum_fuel_rate_50,N,ex_vars.data(),vals.data(),50.0,NULL,NULL));
+    SCIP_CALL ( SCIPcreateExprSignpower(g,&inv_sum_fuel_rate_50,sum_fuel_rate_50,-1.0,NULL,NULL));
   }
 
   SCIP_EXPR *sum_thrust=nullptr;
-  SCIP_EXPR *exp_speed =nullptr;
   {
     std::vector<double> vals(N);
     for (size_t i=0;i<N;i++){
       vals[i] = mods[i].thrust;
     }
     SCIP_CALL ( SCIPcreateExprSum(g,&sum_thrust,N,ex_vars.data(),vals.data(),1.0,NULL,NULL));
-    SCIP_CALL ( SCIPcreateExprSum(g,&exp_speed,N,ex_vars.data(),vals.data(),90.0,NULL,NULL));
   }
    
   SCIP_EXPR *sum_cost=nullptr;
@@ -174,7 +152,17 @@ int solve(
     SCIP_CALL ( SCIPcreateExprSum(g,&sum_firepower,N,ex_vars.data(),vals.data(),1.0,NULL,NULL));
   }
 
-  //TODO: Range: fuel_time * speed * factor
+  //via /u/jodavaho
+  //speed = 90.0*twr
+  SCIP_EXPR * twr = nullptr;
+  SCIP_EXPR *exp_speed =nullptr;
+  {
+    SCIP_EXPR *inv_wt, *terms[2]={inv_wt,sum_thrust};
+    SCIP_CALL ( SCIPcreateExprSignpower(g,&inv_wt,sum_weight,-1.0,NULL,NULL));
+    SCIP_CALL ( SCIPcreateExprProduct(g,&twr,2,terms,1.0,NULL,NULL));
+    SCIP_CALL ( SCIPcreateExprProduct(g,&exp_speed,1,&twr,90.0,NULL,NULL));
+  }
+
   //via /u/NoamChomskyForever
   //Range = Fuel Capacity * 1000 / Total Fuel Needed / 3600 * Speed
   //Range = sum_fuel_cap / (3.6 sum_fuel_rate) * speed
@@ -184,17 +172,24 @@ int solve(
     SCIP_CALL ( SCIPcreateExprProduct(g,&exp_range,3,terms,1.0,NULL,NULL));
   }
 
+  //via /u/d0d0b1rd
+  //Combat Time: sum(fuel_cap) / (sum(fuel_rate)*50) in seconds
+  SCIP_EXPR * exp_combat_time = nullptr;
+  {
+    SCIP_EXPR* terms[2]= {sum_fuel_cap, inv_sum_fuel_rate_50};
+    SCIP_CALL( SCIPcreateExprProduct(g,&exp_combat_time,2,terms,1.0,NULL,NULL));
+  }
+
 
 #define CONS_DEFAULT 1, 1, 1, 1, 1, 0, 0, 0, 0
   //add minimum constraints
   //T/W >= desired
-  double minimum_twr_value = 1.0;
-  SCIP_EXPR *inv_wt, *twr, *twrc[2]={inv_wt,twr};
-  SCIP_CONS *minimum_twr_cons;
-  SCIP_CALL ( SCIPcreateExprSignpower(g,&inv_wt,sum_weight,-1.0,NULL,NULL));
-  SCIP_CALL ( SCIPcreateExprProduct(g,&twr,2,twrc,1.0,NULL,NULL));
-  SCIP_CALL ( SCIPcreateConsNonlinear(g,&minimum_twr_cons, "Minimum_TWR" ,twr, minimum_twr_value, SCIPinfinity(g), CONS_DEFAULT));
-  SCIP_CALL ( SCIPaddCons(g,minimum_twr_cons) );
+  {
+    SCIP_CONS *minimum_twr_cons;
+    double minimum_twr_value = 1.0;
+    SCIP_CALL ( SCIPcreateConsNonlinear(g,&minimum_twr_cons, "Minimum_TWR" ,twr, minimum_twr_value, SCIPinfinity(g), CONS_DEFAULT));
+    SCIP_CALL ( SCIPaddCons(g,minimum_twr_cons) );
+  }
 
   //cost =< desired
   SCIP_CONS* maximum_cost_cons;
@@ -214,21 +209,39 @@ int solve(
   SCIP_CALL ( SCIPcreateConsNonlinear(g,&minimum_speed_cons, "Minumum_Speed" ,exp_speed, minimum_speed_value, SCIPinfinity(g), CONS_DEFAULT));
   SCIP_CALL ( SCIPaddCons(g,minimum_speed_cons) );
 
-
   //Weight: sum_weight< X
   SCIP_CONS* maximum_weight_cons;
   double maximum_weight_value=SCIPinfinity(g);
   SCIP_CALL ( SCIPcreateConsNonlinear(g,&maximum_weight_cons, "Maximum_Weight", sum_weight,0.0,maximum_weight_value, CONS_DEFAULT) );
   SCIP_CALL ( SCIPaddCons(g,maximum_weight_cons));
   
-  //TODO: Combat Time: fuel_time * factor
-  
+
+  SCIP_CONS* minimum_combat_time_cons;
+  double combat_time_minimum=10;
+  SCIP_CALL( SCIPcreateConsNonlinear(g,&minimum_combat_time_cons,"Minimum Combat Time", exp_combat_time, combat_time_minimum, SCIPinfinity(g), CONS_DEFAULT) );
+  SCIP_CALL( SCIPaddCons(g,minimum_combat_time_cons));
+
+  SCIP_CALL( SCIPprintOrigProblem(g, NULL, "cip", FALSE) ); 
+  SCIP_CALL ( SCIPsolve(g) );
+  if( SCIPgetNSols(g) > 0 )
+  {
+    SCIPinfoMessage(g, NULL, "\nSolution:\n");
+    SCIP_CALL( SCIPprintSol(g, SCIPgetBestSol(g), NULL, FALSE) );
+  }
+
+  return SCIP_OKAY;
+
   return 0;
 }
 
 int execopt(int argc, char** argv){
-
-  return 0;
+  ModuleSet all;
+  std::vector<size_t> counts;
+  std::vector<module> available_mods(all_modules.size());
+  for (auto m: all_modules){
+    available_mods.push_back(m);
+  }
+  return solve(counts, available_mods );
 }
 
 
@@ -280,6 +293,6 @@ int exectest(int argc, char** argv){
 }
 int main(int argc, char** argv){
   //parse args ...
-
-  return exectest(argc,argv)!=SCIP_OKAY ? 1:0;
+  
+  return execopt(argc,argv)!=SCIP_OKAY ? 1:0;
 }
