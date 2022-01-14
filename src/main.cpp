@@ -29,9 +29,19 @@ struct SCIPLOCK{
   }
 };
 
+struct Bounds{
+  double cost[2]={0,INFINITY};
+  double weight[2]={0,INFINITY};
+  double speed[2]={0,INFINITY};
+  double range[2]={0,INFINITY};
+  double twr[2]={1.0,INFINITY};
+  double combat_time[2]={0,INFINITY};
+};
+
 int solve(
     std::vector<size_t> &out_counts,
     const std::vector<module> &mods,
+    const Bounds bounds=Bounds(),
     const std::vector<module> required={} 
     )
 {
@@ -188,47 +198,29 @@ int solve(
     SCIP_CALL( SCIPcreateExprProduct(g,&exp_combat_time,2,terms,1.0,NULL,NULL));
   }
 
-
-#define CONS_DEFAULT 1, 1, 1, 1, 1, 0, 0, 0, 0
   //add minimum constraints
-  //T/W >= desired
-  {
-    SCIP_CONS *minimum_twr_cons;
-    SCIP_Real minimum_twr_value = 1.0;
-    //segfault:
-    SCIP_CALL ( SCIPcreateConsNonlinear(g,&minimum_twr_cons, "Minimum_TWR" ,twr, minimum_twr_value, SCIPinfinity(g), CONS_DEFAULT));
-    SCIP_CALL ( SCIPaddCons(g,minimum_twr_cons) );
-  }
+  SCIP_CONS *minimum_twr_cons;
+  SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&minimum_twr_cons, "TWR_Bounsd" ,twr, bounds.twr[0], bounds.twr[1]));
+  SCIP_CALL ( SCIPaddCons(g,minimum_twr_cons) );
 
-  //cost =< desired
   SCIP_CONS* maximum_cost_cons;
-  SCIP_Real maximum_cost_value=300000.0;
-  SCIP_CALL ( SCIPcreateConsNonlinear(g,&maximum_cost_cons, "Maximum_cost" ,sum_cost, 0.0, maximum_cost_value, CONS_DEFAULT));
+  SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&maximum_cost_cons, "Maximum_cost" ,sum_cost, bounds.cost[0], bounds.cost[1]));
   SCIP_CALL ( SCIPaddCons(g,maximum_cost_cons) );
  
-  //range >= desired
   SCIP_CONS* minimum_range_cons;
-  SCIP_Real minimum_range_value=10.0;
-  //segfault here: 
-  SCIP_CALL ( SCIPcreateConsNonlinear(g,&minimum_range_cons, "Minimum_Range" ,exp_range,minimum_range_value, SCIPinfinity(g), CONS_DEFAULT));
+  SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&minimum_range_cons, "Minimum_Range" ,exp_range,bounds.range[0],bounds.range[1]));
   SCIP_CALL ( SCIPaddCons(g,minimum_range_cons) );
     
-  //speed>= desired
   SCIP_CONS* minimum_speed_cons;
-  SCIP_Real minimum_speed_value=0.0;//it's actually 90, twr>1.0 and speed = 90*twr
-  SCIP_CALL ( SCIPcreateConsNonlinear(g,&minimum_speed_cons, "Minumum_Speed" ,exp_speed, minimum_speed_value, SCIPinfinity(g), CONS_DEFAULT));
+  SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&minimum_speed_cons, "Minumum_Speed" ,exp_speed, bounds.speed[0], bounds.speed[1]));
   SCIP_CALL ( SCIPaddCons(g,minimum_speed_cons) );
 
-  //Weight: sum_weight< X
   SCIP_CONS* maximum_weight_cons;
-  SCIP_Real maximum_weight_value=SCIPinfinity(g);
-  SCIP_CALL ( SCIPcreateConsNonlinear(g,&maximum_weight_cons, "Maximum_Weight", sum_weight,0.0,maximum_weight_value, CONS_DEFAULT) );
+  SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&maximum_weight_cons, "Maximum_Weight", sum_weight,bounds.weight[0], bounds.weight[1]) );
   SCIP_CALL ( SCIPaddCons(g,maximum_weight_cons));
   
-
   SCIP_CONS* minimum_combat_time_cons;
-  SCIP_Real combat_time_minimum=0.0;
-  SCIP_CALL( SCIPcreateConsNonlinear(g,&minimum_combat_time_cons,"Minimum Combat Time", exp_combat_time, combat_time_minimum, SCIPinfinity(g), CONS_DEFAULT) );
+  SCIP_CALL( SCIPcreateConsBasicNonlinear(g,&minimum_combat_time_cons,"Minimum Combat Time", exp_combat_time, bounds.combat_time[0], bounds.combat_time[1]) );
   SCIP_CALL( SCIPaddCons(g,minimum_combat_time_cons));
 
   SCIP_CALL( SCIPprintOrigProblem(g, NULL, "cip", FALSE) ); 
@@ -240,8 +232,6 @@ int solve(
   }
 
   return SCIP_OKAY;
-
-  return 0;
 }
 
 int execopt(int argc, char** argv){
@@ -252,58 +242,14 @@ int execopt(int argc, char** argv){
     std::cout<<"Adding: "<<m.name<<std::endl;
     available_mods.push_back(m);
   }
-  return solve(counts, available_mods );
+  Bounds b;
+  b.speed[0]=400;
+  std::vector<module> req;
+  req.push_back( *by_name("d-80") );
+  return solve(counts, available_mods, b );
 }
 
-
-int exectest(int argc, char** argv){
-  SCIPLOCK lock;//RAII-ish
-  SCIP_CALL( SCIPcreate(&g));
-  SCIP_CALL( SCIPincludeDefaultPlugins(g));
-  SCIP_CALL( SCIPcreateProbBasic(g, "Highfleet_Component_Selection"));
-  SCIP_CALL( SCIPsetObjsense(g, SCIP_OBJSENSE_MINIMIZE));
-
-  SCIP_CONS* c;
-  SCIP_CONSHDLR* h;
-  SCIP_CONSDATA* d;
-
-  //create vars
-  //pass those vars into expressions?
-  //add expression to constraint
-  //add constraint to problem
-  SCIP_EXPR* prod;
-  SCIP_EXPR* ex_vars[2];
-  SCIP_VAR* vars[2];
-  //create vars, expressions w/ thsoe vars, combine exprs, and set constraints
-  SCIP_CALL ( SCIPcreateVarBasic(g,&vars[0], "a",1.0,SCIPinfinity(g), 2.0, SCIP_VARTYPE_INTEGER) ) ;
-  SCIP_CALL ( SCIPcreateVarBasic(g,&vars[1], "b",1.0,SCIPinfinity(g), 2.0, SCIP_VARTYPE_INTEGER) );
-  SCIP_CALL ( SCIPaddVar(g,vars[0]) );
-  SCIP_CALL ( SCIPaddVar(g,vars[1]) );
-  SCIP_CALL ( SCIPcreateExprVar(g,&ex_vars[0],vars[0],NULL,NULL) );
-  SCIP_CALL ( SCIPcreateExprVar(g,&ex_vars[1],vars[1],NULL,NULL) );
-  SCIP_CALL ( SCIPcreateExprProduct(g,&prod,2,ex_vars,1.0,NULL,NULL) );
-  SCIP_CALL ( SCIPcreateConsNonlinear(g,&c, "Prod",prod, 0.0, 1.0, 
-      1, 1, 1, 1, 1, 
-      0, 0, 0, 0) );
-  SCIP_CALL ( SCIPaddCons(g,c) );
-
-  // Constraints https://www.scipopt.org/doc/html/group__CONSHDLRS.php
-  // best example:
-  // https://www.scipopt.org/doc/html/brachistochrone_8c_source.php#l00068
-
-  ///
-  SCIP_CALL( SCIPprintOrigProblem(g, NULL, "cip", FALSE) ); 
-  SCIP_CALL ( SCIPsolve(g) );
-  if( SCIPgetNSols(g) > 0 )
-  {
-    SCIPinfoMessage(g, NULL, "\nSolution:\n");
-    SCIP_CALL( SCIPprintSol(g, SCIPgetBestSol(g), NULL, FALSE) );
-  }
-
-  return SCIP_OKAY;
-}
 int main(int argc, char** argv){
-  //parse args ...
-  
+ 
   return execopt(argc,argv)!=SCIP_OKAY ? 1:0;
 }

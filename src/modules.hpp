@@ -80,6 +80,16 @@ ModuleSet create_all_mods(){
   return ret;
 }
 
+
 static ModuleSet all_modules = create_all_mods();
+
+std::optional<module> by_name(std::string des){
+  for (auto m: all_modules){
+    if (m.name==des){
+      return m;
+    }
+  }
+  return std::optional<module>();
+}
 
 #endif
