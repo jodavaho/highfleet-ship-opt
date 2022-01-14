@@ -162,10 +162,13 @@ int solve(
   SCIP_EXPR * twr = nullptr;
   SCIP_EXPR *exp_speed =nullptr;
   {
-    SCIP_EXPR *inv_wt, *terms[2]={inv_wt,sum_thrust};
+    SCIP_EXPR *inv_wt, *terms[2];
     SCIP_CALL ( SCIPcreateExprSignpower(g,&inv_wt,sum_weight,-1.0,NULL,NULL));
+    terms[0]=sum_thrust;
+    terms[1]=inv_wt;
     SCIP_CALL ( SCIPcreateExprProduct(g,&twr,2,terms,1.0,NULL,NULL));
-    SCIP_CALL ( SCIPcreateExprProduct(g,&exp_speed,1,&twr,90.0,NULL,NULL));
+    terms[0]=twr;
+    SCIP_CALL ( SCIPcreateExprProduct(g,&exp_speed,1,terms,90.0,NULL,NULL));
   }
 
   //via /u/NoamChomskyForever
