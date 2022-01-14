@@ -75,6 +75,9 @@ int solve(
     //create var for count
     size_t min = mod_minimums[m.name];
     assert(min>=0);
+    if (min>0){
+       std::cout<<"req: "<<min<<"<n_"<<m.name<<"<"<<SCIPinfinity(g)<<std::endl;
+    }
     SCIP_CALL ( SCIPcreateVarBasic(g,varp, nam.c_str(), min, SCIPinfinity(g), 1.0, SCIP_VARTYPE_INTEGER) ) ;
     SCIP_CALL ( SCIPaddVar(g,*varp) );
     auto ex_varp = &ex_vars[i];
@@ -84,7 +87,6 @@ int solve(
   }
 
   //create the sum_of(resource) for each resource
-
   SCIP_EXPR *sum_fuel_cap=nullptr;
   {
     std::vector<SCIP_Real> vals(N);
@@ -243,10 +245,11 @@ int execopt(int argc, char** argv){
     available_mods.push_back(m);
   }
   Bounds b;
-  b.speed[0]=400;
+  b.speed[0]=1;
+  b.speed[0]=1;
   std::vector<module> req;
   req.push_back( *by_name("d-80") );
-  return solve(counts, available_mods, b );
+  return solve(counts, available_mods, b, req );
 }
 
 int main(int argc, char** argv){
