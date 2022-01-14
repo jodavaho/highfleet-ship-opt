@@ -192,6 +192,7 @@ int solve(
   {
     SCIP_CONS *minimum_twr_cons;
     SCIP_Real minimum_twr_value = 1.0;
+    //segfault:
     SCIP_CALL ( SCIPcreateConsNonlinear(g,&minimum_twr_cons, "Minimum_TWR" ,twr, minimum_twr_value, SCIPinfinity(g), CONS_DEFAULT));
     SCIP_CALL ( SCIPaddCons(g,minimum_twr_cons) );
   }
@@ -205,14 +206,15 @@ int solve(
   //range >= desired
   SCIP_CONS* minimum_range_cons;
   SCIP_Real minimum_range_value=10.0;
-  //SCIP_CALL ( SCIPcreateConsNonlinear(g,&minimum_range_cons, "Minimum_Range" ,exp_range,minimum_range_value, SCIPinfinity(g), CONS_DEFAULT));
-  //SCIP_CALL ( SCIPaddCons(g,minimum_range_cons) );
+  //segfault here: 
+  SCIP_CALL ( SCIPcreateConsNonlinear(g,&minimum_range_cons, "Minimum_Range" ,exp_range,minimum_range_value, SCIPinfinity(g), CONS_DEFAULT));
+  SCIP_CALL ( SCIPaddCons(g,minimum_range_cons) );
     
   //speed>= desired
   SCIP_CONS* minimum_speed_cons;
   SCIP_Real minimum_speed_value=0.0;//it's actually 90, twr>1.0 and speed = 90*twr
-  //SCIP_CALL ( SCIPcreateConsNonlinear(g,&minimum_speed_cons, "Minumum_Speed" ,exp_speed, minimum_speed_value, SCIPinfinity(g), CONS_DEFAULT));
-  //SCIP_CALL ( SCIPaddCons(g,minimum_speed_cons) );
+  SCIP_CALL ( SCIPcreateConsNonlinear(g,&minimum_speed_cons, "Minumum_Speed" ,exp_speed, minimum_speed_value, SCIPinfinity(g), CONS_DEFAULT));
+  SCIP_CALL ( SCIPaddCons(g,minimum_speed_cons) );
 
   //Weight: sum_weight< X
   SCIP_CONS* maximum_weight_cons;
