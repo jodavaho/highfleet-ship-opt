@@ -92,4 +92,17 @@ std::optional<module> by_name(std::string des){
   return std::optional<module>();
 }
 
+std::ostream& operator<<(std::ostream& os, const module&m){
+  os<<m.name<<" ";
+  os<<"$"<<m.cost<<" ";
+  os<<m.weight<<"T ";
+  os<<m.thrust<<"MN ";
+  os<<m.fuel_cap<<"Tf ";
+  os<<m.fuel_rate<<"kg/s ";
+  os<<m.ammo<<"ammo ";
+  os<<m.crew<<"crew ";
+  os<<m.energy<<"MW ";
+  return os;
+}
+
 #endif

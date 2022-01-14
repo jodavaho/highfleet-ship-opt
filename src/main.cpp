@@ -19,10 +19,10 @@ SCIP_CONSHDLR * conshdlr_nl;
 struct SCIPLOCK{
   SCIPLOCK(){}
   ~SCIPLOCK(){
-    for (auto ptr: ex_vars){
+    for (auto &ptr: ex_vars){
       SCIPreleaseExpr(g,&ptr);
     }
-    for (auto ptr: vars){
+    for (auto &ptr: vars){
       SCIPreleaseVar(g,&ptr);
     }
     if(g){SCIPfree(&g);}
@@ -78,7 +78,7 @@ int solve(
     if (min>0){
        std::cout<<"req: "<<min<<"<n_"<<m.name<<"<"<<SCIPinfinity(g)<<std::endl;
     }
-    SCIP_CALL ( SCIPcreateVarBasic(g,varp, nam.c_str(), min, SCIPinfinity(g), 1.0, SCIP_VARTYPE_INTEGER) ) ;
+    SCIP_CALL ( SCIPcreateVarBasic(g,varp, nam.c_str(), min, SCIPinfinity(g), m.cost, SCIP_VARTYPE_INTEGER) ) ;
     SCIP_CALL ( SCIPaddVar(g,*varp) );
     auto ex_varp = &ex_vars[i];
     //create xprvar for count
@@ -93,7 +93,7 @@ int solve(
     for (size_t i=0;i<N;i++){
       vals[i] = mods[i].fuel_cap;
     }
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_fuel_cap,N,ex_vars.data(),vals.data(),1.0,NULL,NULL));
+    SCIP_CALL ( SCIPcreateExprSum(g,&sum_fuel_cap,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
   }
 
   SCIP_EXPR *sum_fuel_rate=nullptr;
@@ -106,12 +106,14 @@ int solve(
     for (size_t i=0;i<N;i++){
       vals[i] = mods[i].fuel_rate;
     }
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_fuel_rate,N,ex_vars.data(),vals.data(),1.0,NULL,NULL));
+    SCIP_EXPR * terms[1];
+    SCIP_CALL ( SCIPcreateExprSum(g,&sum_fuel_rate,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
+    terms[0]=sum_fuel_rate;
     //later need 1/(3.6 x)
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_fuel_rate_3p6,N,ex_vars.data(),vals.data(),3.6,NULL,NULL));
+    SCIP_CALL ( SCIPcreateExprProduct(g,&sum_fuel_rate_3p6,1,terms,3.6,NULL,NULL));
     SCIP_CALL ( SCIPcreateExprSignpower(g,&inv_sum_fuel_rate_3p6,sum_fuel_rate_3p6,-1.0,NULL,NULL));
     //later need 1/(50 x)
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_fuel_rate_50,N,ex_vars.data(),vals.data(),50.0,NULL,NULL));
+    SCIP_CALL ( SCIPcreateExprProduct(g,&sum_fuel_rate_50,1,terms,50.0,NULL,NULL));
     SCIP_CALL ( SCIPcreateExprSignpower(g,&inv_sum_fuel_rate_50,sum_fuel_rate_50,-1.0,NULL,NULL));
   }
 
@@ -121,7 +123,7 @@ int solve(
     for (size_t i=0;i<N;i++){
       vals[i] = mods[i].thrust;
     }
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_thrust,N,ex_vars.data(),vals.data(),1.0,NULL,NULL));
+    SCIP_CALL ( SCIPcreateExprSum(g,&sum_thrust,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
   }
    
   SCIP_EXPR *sum_cost=nullptr;
@@ -130,8 +132,18 @@ int solve(
     for (size_t i=0;i<N;i++){
       vals[i] = mods[i].cost;
     }
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_cost,N,ex_vars.data(),vals.data(),1.0,NULL,NULL));
+    SCIP_CALL ( SCIPcreateExprSum(g,&sum_cost,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
   }
+
+  SCIP_EXPR *sum_ammo=nullptr;
+  {
+    std::vector<SCIP_Real> vals(N);
+    for (size_t i=0;i<N;i++){
+      vals[i] = mods[i].ammo;
+    }
+    SCIP_CALL ( SCIPcreateExprSum(g,&sum_ammo,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
+  }
+
 
   SCIP_EXPR *sum_weight=nullptr;
   {
@@ -139,7 +151,7 @@ int solve(
     for (size_t i=0;i<N;i++){
       vals[i] = mods[i].weight;
     }
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_weight,N,ex_vars.data(),vals.data(),1.0,NULL,NULL));
+    SCIP_CALL ( SCIPcreateExprSum(g,&sum_weight,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
   }
 
   SCIP_EXPR *sum_crew=nullptr;
@@ -148,7 +160,7 @@ int solve(
     for (size_t i=0;i<N;i++){
       vals[i] = mods[i].crew;
     }
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_crew,N,ex_vars.data(),vals.data(),1.0,NULL,NULL));
+    SCIP_CALL ( SCIPcreateExprSum(g,&sum_crew,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
   }
   
   SCIP_EXPR *sum_energy=nullptr;
@@ -157,7 +169,7 @@ int solve(
     for (size_t i=0;i<N;i++){
       vals[i] = mods[i].energy;
     }
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_energy,N,ex_vars.data(),vals.data(),1.0,NULL,NULL));
+    SCIP_CALL ( SCIPcreateExprSum(g,&sum_energy,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
   }
 
   SCIP_EXPR *sum_firepower=nullptr;
@@ -166,7 +178,7 @@ int solve(
     for (size_t i=0;i<N;i++){
       vals[i] = mods[i].firepower;
     }
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_firepower,N,ex_vars.data(),vals.data(),1.0,NULL,NULL));
+    SCIP_CALL ( SCIPcreateExprSum(g,&sum_firepower,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
   }
 
   //via /u/jodavaho
@@ -200,30 +212,43 @@ int solve(
     SCIP_CALL( SCIPcreateExprProduct(g,&exp_combat_time,2,terms,1.0,NULL,NULL));
   }
 
+  
   //add minimum constraints
-  SCIP_CONS *minimum_twr_cons;
+  SCIP_CONS* minimum_twr_cons;
   SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&minimum_twr_cons, "TWR_Bounsd" ,twr, bounds.twr[0], bounds.twr[1]));
   SCIP_CALL ( SCIPaddCons(g,minimum_twr_cons) );
 
   SCIP_CONS* maximum_cost_cons;
   SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&maximum_cost_cons, "Maximum_cost" ,sum_cost, bounds.cost[0], bounds.cost[1]));
   SCIP_CALL ( SCIPaddCons(g,maximum_cost_cons) );
- 
+
+  SCIP_CONS* ammo_balanced_cons;
+  SCIP_CALL( SCIPcreateConsBasicNonlinear(g,&ammo_balanced_cons,"Ammo Balanced", sum_ammo, 0, 0) );
+  SCIP_CALL( SCIPaddCons(g,ammo_balanced_cons));
+
+  /*
   SCIP_CONS* minimum_range_cons;
   SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&minimum_range_cons, "Minimum_Range" ,exp_range,bounds.range[0],bounds.range[1]));
   SCIP_CALL ( SCIPaddCons(g,minimum_range_cons) );
-    
+  */
+  
+  /*  
   SCIP_CONS* minimum_speed_cons;
   SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&minimum_speed_cons, "Minumum_Speed" ,exp_speed, bounds.speed[0], bounds.speed[1]));
   SCIP_CALL ( SCIPaddCons(g,minimum_speed_cons) );
+  */
 
+  /*
   SCIP_CONS* maximum_weight_cons;
   SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&maximum_weight_cons, "Maximum_Weight", sum_weight,bounds.weight[0], bounds.weight[1]) );
   SCIP_CALL ( SCIPaddCons(g,maximum_weight_cons));
-  
+  */
+ 
+  /*
   SCIP_CONS* minimum_combat_time_cons;
   SCIP_CALL( SCIPcreateConsBasicNonlinear(g,&minimum_combat_time_cons,"Minimum Combat Time", exp_combat_time, bounds.combat_time[0], bounds.combat_time[1]) );
   SCIP_CALL( SCIPaddCons(g,minimum_combat_time_cons));
+  */
 
   SCIP_CALL( SCIPprintOrigProblem(g, NULL, "cip", FALSE) ); 
   SCIP_CALL ( SCIPsolve(g) );
@@ -241,12 +266,13 @@ int execopt(int argc, char** argv){
   std::vector<size_t> counts;
   std::vector<module> available_mods;
   for (auto m: all_modules){
-    std::cout<<"Adding: "<<m.name<<std::endl;
+    //std::cout<<"Adding: "<<m.name<<std::endl;
+    std::cout<<"Adding: "<<m<<std::endl;
     available_mods.push_back(m);
   }
   Bounds b;
-  b.speed[0]=1;
-  b.speed[0]=1;
+  b.speed[0]=300;
+  b.speed[1]=1000;
   std::vector<module> req;
   req.push_back( *by_name("d-80") );
   return solve(counts, available_mods, b, req );
