@@ -70,13 +70,14 @@ int solve(
     auto ex_varp = &ex_vars[i];
     //create xprvar for count
     SCIP_CALL ( SCIPcreateExprVar(g,ex_varp,*varp,NULL,NULL) );
+    std::cout<<"Created: "<<nam<<std::endl;
   }
 
   //create the sum_of(resource) for each resource
 
   SCIP_EXPR *sum_fuel_cap=nullptr;
   {
-    std::vector<double> vals(N);
+    std::vector<SCIP_Real> vals(N);
     for (size_t i=0;i<N;i++){
       vals[i] = mods[i].fuel_cap;
     }
@@ -89,7 +90,7 @@ int solve(
   SCIP_EXPR *inv_sum_fuel_rate_3p6=nullptr;
   SCIP_EXPR *inv_sum_fuel_rate_50=nullptr;
   {
-    std::vector<double> vals(N);
+    std::vector<SCIP_Real> vals(N);
     for (size_t i=0;i<N;i++){
       vals[i] = mods[i].fuel_rate;
     }
@@ -104,7 +105,7 @@ int solve(
 
   SCIP_EXPR *sum_thrust=nullptr;
   {
-    std::vector<double> vals(N);
+    std::vector<SCIP_Real> vals(N);
     for (size_t i=0;i<N;i++){
       vals[i] = mods[i].thrust;
     }
@@ -113,7 +114,7 @@ int solve(
    
   SCIP_EXPR *sum_cost=nullptr;
   {
-    std::vector<double> vals(N);
+    std::vector<SCIP_Real> vals(N);
     for (size_t i=0;i<N;i++){
       vals[i] = mods[i].cost;
     }
@@ -122,7 +123,7 @@ int solve(
 
   SCIP_EXPR *sum_weight=nullptr;
   {
-    std::vector<double> vals(N);
+    std::vector<SCIP_Real> vals(N);
     for (size_t i=0;i<N;i++){
       vals[i] = mods[i].weight;
     }
@@ -131,7 +132,7 @@ int solve(
 
   SCIP_EXPR *sum_crew=nullptr;
   {
-    std::vector<double> vals(N);
+    std::vector<SCIP_Real> vals(N);
     for (size_t i=0;i<N;i++){
       vals[i] = mods[i].crew;
     }
@@ -140,7 +141,7 @@ int solve(
   
   SCIP_EXPR *sum_energy=nullptr;
   {
-    std::vector<double> vals(N);
+    std::vector<SCIP_Real> vals(N);
     for (size_t i=0;i<N;i++){
       vals[i] = mods[i].energy;
     }
@@ -149,7 +150,7 @@ int solve(
 
   SCIP_EXPR *sum_firepower=nullptr;
   {
-    std::vector<double> vals(N);
+    std::vector<SCIP_Real> vals(N);
     for (size_t i=0;i<N;i++){
       vals[i] = mods[i].firepower;
     }
@@ -190,38 +191,38 @@ int solve(
   //T/W >= desired
   {
     SCIP_CONS *minimum_twr_cons;
-    double minimum_twr_value = 1.0;
-    //SCIP_CALL ( SCIPcreateConsNonlinear(g,&minimum_twr_cons, "Minimum_TWR" ,twr, minimum_twr_value, SCIPinfinity(g), CONS_DEFAULT));
-    //SCIP_CALL ( SCIPaddCons(g,minimum_twr_cons) );
+    SCIP_Real minimum_twr_value = 1.0;
+    SCIP_CALL ( SCIPcreateConsNonlinear(g,&minimum_twr_cons, "Minimum_TWR" ,twr, minimum_twr_value, SCIPinfinity(g), CONS_DEFAULT));
+    SCIP_CALL ( SCIPaddCons(g,minimum_twr_cons) );
   }
 
   //cost =< desired
   SCIP_CONS* maximum_cost_cons;
-  double maximum_cost_value=300000.0;
+  SCIP_Real maximum_cost_value=300000.0;
   SCIP_CALL ( SCIPcreateConsNonlinear(g,&maximum_cost_cons, "Maximum_cost" ,sum_cost, 0.0, maximum_cost_value, CONS_DEFAULT));
   SCIP_CALL ( SCIPaddCons(g,maximum_cost_cons) );
  
   //range >= desired
   SCIP_CONS* minimum_range_cons;
-  double minimum_range_value=10.0;
+  SCIP_Real minimum_range_value=10.0;
   //SCIP_CALL ( SCIPcreateConsNonlinear(g,&minimum_range_cons, "Minimum_Range" ,exp_range,minimum_range_value, SCIPinfinity(g), CONS_DEFAULT));
   //SCIP_CALL ( SCIPaddCons(g,minimum_range_cons) );
     
   //speed>= desired
   SCIP_CONS* minimum_speed_cons;
-  double minimum_speed_value=0.0;//it's actually 90, twr>1.0 and speed = 90*twr
+  SCIP_Real minimum_speed_value=0.0;//it's actually 90, twr>1.0 and speed = 90*twr
   //SCIP_CALL ( SCIPcreateConsNonlinear(g,&minimum_speed_cons, "Minumum_Speed" ,exp_speed, minimum_speed_value, SCIPinfinity(g), CONS_DEFAULT));
   //SCIP_CALL ( SCIPaddCons(g,minimum_speed_cons) );
 
   //Weight: sum_weight< X
   SCIP_CONS* maximum_weight_cons;
-  double maximum_weight_value=SCIPinfinity(g);
+  SCIP_Real maximum_weight_value=SCIPinfinity(g);
   SCIP_CALL ( SCIPcreateConsNonlinear(g,&maximum_weight_cons, "Maximum_Weight", sum_weight,0.0,maximum_weight_value, CONS_DEFAULT) );
   SCIP_CALL ( SCIPaddCons(g,maximum_weight_cons));
   
 
   SCIP_CONS* minimum_combat_time_cons;
-  double combat_time_minimum=0.0;
+  SCIP_Real combat_time_minimum=0.0;
   SCIP_CALL( SCIPcreateConsNonlinear(g,&minimum_combat_time_cons,"Minimum Combat Time", exp_combat_time, combat_time_minimum, SCIPinfinity(g), CONS_DEFAULT) );
   SCIP_CALL( SCIPaddCons(g,minimum_combat_time_cons));
 
@@ -241,8 +242,9 @@ int solve(
 int execopt(int argc, char** argv){
   ModuleSet all;
   std::vector<size_t> counts;
-  std::vector<module> available_mods(all_modules.size());
+  std::vector<module> available_mods;
   for (auto m: all_modules){
+    std::cout<<"Adding: "<<m.name<<std::endl;
     available_mods.push_back(m);
   }
   return solve(counts, available_mods );
