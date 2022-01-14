@@ -117,13 +117,17 @@ int solve(
     SCIP_CALL ( SCIPcreateExprSignpower(g,&inv_sum_fuel_rate_50,sum_fuel_rate_50,-1.0,NULL,NULL));
   }
 
-  SCIP_EXPR *sum_thrust=nullptr;
+  SCIP_EXPR *sum_thrust_mn=nullptr;
+  SCIP_EXPR *sum_thrust_mtf=nullptr;
   {
     std::vector<SCIP_Real> vals(N);
     for (size_t i=0;i<N;i++){
       vals[i] = mods[i].thrust;
     }
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_thrust,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
+    SCIP_CALL ( SCIPcreateExprSum(g,&sum_thrust_mn,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
+    SCIP_EXPR* terms[1];
+    terms[0]=sum_thrust_mn;
+    SCIP_CALL ( SCIPcreateExprProduct(g,&sum_thrust_mtf,1,terms,101.97,NULL,NULL));
   }
    
   SCIP_EXPR *sum_cost=nullptr;
@@ -182,17 +186,17 @@ int solve(
   }
 
   //via /u/jodavaho
-  //speed = 90.0*twr
+  //speed = 89.9*twr+.01
   SCIP_EXPR * twr = nullptr;
   SCIP_EXPR *exp_speed =nullptr;
   {
     SCIP_EXPR *inv_wt, *terms[2];
     SCIP_CALL ( SCIPcreateExprSignpower(g,&inv_wt,sum_weight,-1.0,NULL,NULL));
-    terms[0]=sum_thrust;
+    terms[0]=sum_thrust_mtf;
     terms[1]=inv_wt;
     SCIP_CALL ( SCIPcreateExprProduct(g,&twr,2,terms,1.0,NULL,NULL));
     terms[0]=twr;
-    SCIP_CALL ( SCIPcreateExprProduct(g,&exp_speed,1,terms,90.0,NULL,NULL));
+    SCIP_CALL ( SCIPcreateExprProduct(g,&exp_speed,1,terms,89.9,NULL,NULL));
   }
 
   //via /u/NoamChomskyForever
@@ -226,11 +230,10 @@ int solve(
   SCIP_CALL( SCIPcreateConsBasicNonlinear(g,&ammo_balanced_cons,"Ammo Balanced", sum_ammo, 0, 0) );
   SCIP_CALL( SCIPaddCons(g,ammo_balanced_cons));
 
-  /*
+  
   SCIP_CONS* minimum_range_cons;
   SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&minimum_range_cons, "Minimum_Range" ,exp_range,bounds.range[0],bounds.range[1]));
   SCIP_CALL ( SCIPaddCons(g,minimum_range_cons) );
-  */
   
   /*  
   SCIP_CONS* minimum_speed_cons;
@@ -251,6 +254,8 @@ int solve(
   */
 
   SCIP_CALL( SCIPprintOrigProblem(g, NULL, "cip", FALSE) ); 
+  //fucking compiled without support:
+  //SCIP_CALL ( SCIPsolveParallel(g) );
   SCIP_CALL ( SCIPsolve(g) );
   if( SCIPgetNSols(g) > 0 )
   {
@@ -273,6 +278,8 @@ int execopt(int argc, char** argv){
   Bounds b;
   b.speed[0]=300;
   b.speed[1]=1000;
+  //b.twr[1]=5;
+  b.twr[0]=2;
   std::vector<module> req;
   req.push_back( *by_name("d-80") );
   return solve(counts, available_mods, b, req );
