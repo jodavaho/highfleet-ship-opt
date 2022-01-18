@@ -322,15 +322,6 @@ int solve(
    * TODO: fuel_cap - CTLB * (fuel_rate * 50 ) > 0
   */
 
-  /*
-   * energy_rate / energy_need > ELB
-   * TODO: energy_rate - ELB * energy_need > 0
-   * energy_rate / energy_need < EUB
-   * TODO: energy_rate - EUB * energy_need < 0
-   * for ELB, EUB \n [0,1]
-   */
-  //todo todo todo 
-
   SCIP_CALL( SCIPprintOrigProblem(g, NULL, "cip", FALSE) ); 
   //fucking compiled without support:
   //SCIP_CALL ( SCIPsolveParallel(g) );
