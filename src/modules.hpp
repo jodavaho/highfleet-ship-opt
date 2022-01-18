@@ -44,7 +44,7 @@ std::optional<const module> by_name(std::string des);
 
 //return all modules for iteration
 //e.g.,. for (const auto m: get_all_modules()) {...}
-const ModuleSet get_all_modules();
+ModuleSet get_all_modules();
 
 //define output stream formatting, 
 //

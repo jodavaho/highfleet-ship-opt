@@ -6,11 +6,11 @@ OBJD := build
 SRC  := $(wildcard $(SRCD)/*.cpp)
 OBJ  := $(patsubst $(SRCD)/%.cpp,$(OBJD)/%.o,$(SRC))
 
+build/main: $(OBJ)
+	g++ $(CXXFLAGS) -o $@ $^ $(LIBA)
+
 $(OBJD)/%.o: $(SRCD)/%.cpp $(OBJD)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
-
-build/main: $(OBJ)
-	g++ $(CXXFLAGS) $^ -o $@ $(LIBA)
 
 build:
 	mkdir -p build

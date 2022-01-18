@@ -28,7 +28,7 @@ namespace module_helpers{
 ModuleSet create_all_mods();
 static ModuleSet all_modules = create_all_mods();
 
-const ModuleSet get_all_modules()
+ModuleSet get_all_modules()
 {
   return all_modules;
 }
