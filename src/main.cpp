@@ -365,7 +365,7 @@ int execopt(int argc, char** argv){
   ModuleSet all;
   std::vector<size_t> counts;
   std::vector<module> available_mods;
-  for (auto m: all_modules){
+  for (const auto m: get_all_modules()){
     //std::cout<<"Adding: "<<m<<std::endl;
     available_mods.push_back(m);
   }

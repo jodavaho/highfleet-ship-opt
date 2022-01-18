@@ -1,8 +1,16 @@
 LIBA=-lscip
-CCF=-g -std=c++2a
+CXXFLAGS=-g -std=c++2a
 
-build/main: src/main.cpp src/modules.hpp build
-	g++ $(CCF) $< -o $@ $(LIBA)
+SRCD := src
+OBJD := build
+SRC  := $(wildcard $(SRCD)/*.cpp)
+OBJ  := $(patsubst $(SRCD)/%.cpp,$(OBJD)/%.o,$(SRC))
+
+$(OBJD)/%.o: $(SRCD)/%.cpp $(OBJD)
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+build/main: $(OBJ)
+	g++ $(CXXFLAGS) $^ -o $@ $(LIBA)
 
 build:
 	mkdir -p build
