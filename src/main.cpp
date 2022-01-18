@@ -30,12 +30,12 @@ struct SCIPLOCK{
 };
 
 struct Bounds{
-  double cost[2]={0,INFINITY};
-  double weight[2]={0,INFINITY};
-  double speed[2]={0,INFINITY};
-  double range[2]={0,INFINITY};
-  double twr[2]={1.0,INFINITY};
-  double combat_time[2]={0,INFINITY};
+  double cost[2]={0,1e7};
+  double weight[2]={0,1e7};
+  double speed[2]={0,1e7};
+  double range[2]={0,1e15};
+  double twr[2]={1.0,1e7};
+  double combat_time[2]={0,1e7};
 };
 
 int solve(
@@ -214,19 +214,37 @@ int solve(
   }
 
   //////////////////// Design constraints
+  //
 
-  //via /u/jodavaho
-  //speed = 89.9*twr+.01
-  SCIP_EXPR * twr = nullptr;
-  SCIP_EXPR *exp_speed =nullptr;
+  /* 
+   * Set TWR Constraints
+   * TODO: Absorb speed constraints here
+  */
+  SCIP_CONS* twr_lb_cons;
+  SCIP_CONS* twr_ub_cons;
   {
-    SCIP_EXPR *neg_inv_wt, *terms[2];
-    SCIP_CALL ( SCIPcreateExprSignpower(g,&neg_inv_wt,sum_weight,-1.0,NULL,NULL));
+    //T/W > LB --> T - LB.W > 0
+    //T/W < UB --> T - UB.W < 0 --> UB.W-T > 0
+    SCIP_EXPR* twr_lhs_lb, *twr_lhs_ub;
+    
+    SCIP_EXPR* terms[2];
     terms[0]=sum_thrust_mtf;
-    terms[1]=neg_inv_wt;
-    SCIP_CALL ( SCIPcreateExprProduct(g,&twr,2,terms,-1.0,NULL,NULL));
-    terms[0]=twr;
-    SCIP_CALL ( SCIPcreateExprProduct(g,&exp_speed,1,terms,89.9,NULL,NULL));
+    terms[1]=sum_weight;
+    //
+    SCIP_Real coefficients[2];
+    //
+    coefficients[0]=1.0;
+    coefficients[1]=-bounds.twr[0];
+    SCIP_CALL ( SCIPcreateExprSum(g,&twr_lhs_lb,2,terms,coefficients,0.0,NULL,NULL));
+    SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&twr_lb_cons, "TWR LB" ,twr_lhs_lb, 0.0, SCIPinfinity(g)));
+    SCIP_CALL ( SCIPaddCons(g,twr_lb_cons));
+    // opposite sign (>0)
+    coefficients[0]=bounds.twr[1];
+    coefficients[1]=-1.0;
+    SCIP_CALL ( SCIPcreateExprSum(g,&twr_lhs_ub,2,terms,coefficients,0.0,NULL,NULL));
+    SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&twr_ub_cons, "TWR UB" ,twr_lhs_ub, 0.0, SCIPinfinity(g)));
+    SCIP_CALL ( SCIPaddCons(g,twr_ub_cons));
+    //
   }
 
   //assuming correct units:
@@ -236,10 +254,9 @@ int solve(
   //TODO: sum_fuel_cap * speed - RUP * sum_fuel_rate < 0
   //sum_fuel_cap / (sum_fuel_rate) * speed > RLO
   //TODO: sum_fuel_cap * speed - RLO * sum_fuel_rate > 0
-  SCIP_EXPR *exp_range=nullptr;
   {
-    SCIP_EXPR* terms[3]={sum_fuel_cap,inv_sum_fuel_rate,exp_speed};
-    SCIP_CALL ( SCIPcreateExprProduct(g,&exp_range,3,terms,1.0,NULL,NULL));
+    //SCIP_EXPR* terms[3]={sum_fuel_cap,inv_sum_fuel_rate,exp_speed};
+    //SCIP_CALL ( SCIPcreateExprProduct(g,&exp_range,3,terms,1.0,NULL,NULL));
   }
 
   //via /u/d0d0b1rd
@@ -248,22 +265,6 @@ int solve(
   //TODO: sum_fuel_cap - fuel_rate * CUB*50 < 0
   //TODO: sum_fuel_cap / fuel_rate > CLB*50
   //TODO: sum_fuel_cap - fuel_rate * CLB*50 > 0
-  SCIP_EXPR * exp_combat_time = nullptr;
-  {
-    SCIP_EXPR* terms[2]= {sum_fuel_cap, inv_sum_fuel_rate_50};
-    SCIP_CALL( SCIPcreateExprProduct(g,&exp_combat_time,2,terms,1.0,NULL,NULL));
-  }
-
-  /* 
-   * TODO: 
-   * T/W > TWLB
-   * T-W*TWLB > 0
-   * T/W < TWUB
-   * T-W*TWUB < 0
-  */
-  SCIP_CONS* minimum_twr_cons;
-  SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&minimum_twr_cons, "TWR_Bounds" ,twr, bounds.twr[0], bounds.twr[1]));
-  SCIP_CALL ( SCIPaddCons(g,minimum_twr_cons) );
 
   /*
    * OK
@@ -287,16 +288,7 @@ int solve(
   SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&minimum_range_cons, "Minimum_Range" ,exp_range,bounds.range[0],bounds.range[1]));
   SCIP_CALL ( SCIPaddCons(g,minimum_range_cons) );
   */
-
-  /*
-   * SLB < 90* T/W < SUB
-   * TODO:
-   * 0 < 90*T - W*SLB
-   * 0 > 90*T - W*SUB
-  */
-  SCIP_CONS* minimum_speed_cons;
-  SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&minimum_speed_cons, "Minumum_Speed" ,exp_speed, bounds.speed[0], bounds.speed[1]));
-  SCIP_CALL ( SCIPaddCons(g,minimum_speed_cons) );
+  //
 
   /*
    * OK
@@ -311,9 +303,6 @@ int solve(
    * fuel_cap / (fuel_rate * 50 ) > CTLB
    * TODO: fuel_cap - CTLB * (fuel_rate * 50 ) > 0
   */
-  SCIP_CONS* minimum_combat_time_cons;
-  SCIP_CALL( SCIPcreateConsBasicNonlinear(g,&minimum_combat_time_cons,"Minimum Combat Time", exp_combat_time, bounds.combat_time[0], bounds.combat_time[1]) );
-  SCIP_CALL( SCIPaddCons(g,minimum_combat_time_cons));
 
   /*
    * energy_rate / energy_need > ELB
@@ -347,13 +336,10 @@ int execopt(int argc, char** argv){
     available_mods.push_back(m);
   }
   Bounds b;
-  //b.speed[0]=300;
-  //b.speed[1]=1000;
-  //b.twr[1]=5;
-  //b.twr[0]=0;
-  //b.range[0]=0;
-  //b.range[1]=100000;
+  b.twr[1]=5;
+  b.twr[0]=1;
   std::vector<module> req;
+  req.push_back( *by_name("RD_51") );
   req.push_back( *by_name("d_80") );
   req.push_back( *by_name("d_80") );
   return solve(counts, available_mods, b, req );
