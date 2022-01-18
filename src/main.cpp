@@ -247,14 +247,43 @@ int solve(
   //assuming correct units:
   //via /u/jodavaho & /u/d0d0b1rd
   //Range = sum_fuel_cap / ( sum_fuel_rate ) * speed
-  //sum_fuel_cap / (sum_fuel_rate) * speed < RUP
-  //TODO: sum_fuel_cap * speed - RUP * sum_fuel_rate < 0
+  //
+  //sum_fuel_cap / (sum_fuel_rate) * speed < RUP //who needs an upper bound?
+  //TODO Avoid coding up: sum_fuel_cap * speed - RUP * sum_fuel_rate < 0
   //sum_fuel_cap / (sum_fuel_rate) * speed > RLO
   //TODO: sum_fuel_cap * speed - RLO * sum_fuel_rate > 0
+  SCIP_CONS* range_lb_cons;
   {
-    //SCIP_EXPR* terms[3]={sum_fuel_cap,inv_sum_fuel_rate,exp_speed};
-    //SCIP_CALL ( SCIPcreateExprProduct(g,&exp_range,3,terms,1.0,NULL,NULL));
+    //OK.
+    // speed (km/h)  times fuel_cap / fuel_burn (T / T/H = H) = km
+    // spd . fuel_cap / fuel_rate > LB
+    // 89.9 T/W . fuel_cap / fuel_rate > LB
+    // 89.9 T . fuel_cap > LB . W . fuel_rate
+    // 89.9 T . fc - LB . w . fr > 0
+    SCIP_EXPR* range_lhs_lb, *range_lhs_ub;
+    
+    SCIP_EXPR* prod_terms[2];
+    SCIP_EXPR* TxFC;
+    prod_terms[0]=sum_thrust_mtf;
+    prod_terms[1]=sum_fuel_cap;
+    SCIP_CALL ( SCIPcreateExprProduct(g,&TxFC,2,prod_terms,89.9,NULL,NULL));
+    //
+    SCIP_EXPR* WxFR;
+    prod_terms[0]=sum_weight;
+    prod_terms[1]=sum_fuel_rate;
+    SCIP_CALL ( SCIPcreateExprProduct(g,&WxFR,2,prod_terms,1.0,NULL,NULL));
+    //
+    SCIP_EXPR* sum_terms[2];
+    sum_terms[0]=TxFC;
+    sum_terms[1]=WxFR;
+    SCIP_Real coefficients[2];
+    coefficients[0]=1.0;
+    coefficients[1]= - bounds.range[0];
+    SCIP_CALL ( SCIPcreateExprSum(g,&range_lhs_lb,2,sum_terms,coefficients,0.0,NULL,NULL));
+    SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&range_lb_cons, "Range LB" ,range_lhs_lb, 0.0, SCIPinfinity(g)));
+    SCIP_CALL ( SCIPaddCons(g,range_lb_cons));
   }
+
 
   //via /u/d0d0b1rd
   //Combat Time: sum(fuel_cap) / (sum(fuel_rate)*50) in seconds
@@ -278,16 +307,6 @@ int solve(
   SCIP_CONS* ammo_balanced_cons;
   SCIP_CALL( SCIPcreateConsBasicNonlinear(g,&ammo_balanced_cons,"Ammo Balanced", sum_ammo, 0, 0) );
   SCIP_CALL( SCIPaddCons(g,ammo_balanced_cons));
-
-  /*
-   * RLB < speed * fuel_cap / fuel_rate 
-   * TODO: 0 < speed * fuel_cap - RLB * fuel_rate
-   * TODO: 0 > speed * fuel_cap - RUB * fuel_rate
-  SCIP_CONS* minimum_range_cons;
-  SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&minimum_range_cons, "Minimum_Range" ,exp_range,bounds.range[0],bounds.range[1]));
-  SCIP_CALL ( SCIPaddCons(g,minimum_range_cons) );
-  */
-  //
 
   /*
    * OK
@@ -337,6 +356,7 @@ int execopt(int argc, char** argv){
   Bounds b;
   b.twr[1]=5;
   b.twr[0]=1;
+  b.range[0]=1000;
   std::vector<module> req;
   //req.push_back( *by_name("RD_51") );
   //req.push_back( *by_name("d_80") );
