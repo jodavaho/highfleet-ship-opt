@@ -36,6 +36,8 @@ struct Bounds{
   double range[2]={0,1e15};
   double twr[2]={1.0,1e7};
   double combat_time[2]={0,1e7};
+  double min_pwr_ratio=1.0;
+  double min_crew_ratio=1.0;
 };
 
 int solve(
@@ -98,11 +100,6 @@ int solve(
   }
 
   SCIP_EXPR *sum_fuel_rate=nullptr;
-  SCIP_EXPR *sum_fuel_rate_3p6=nullptr;
-  SCIP_EXPR *sum_fuel_rate_50=nullptr;
-  SCIP_EXPR *inv_sum_fuel_rate=nullptr;
-  SCIP_EXPR *inv_sum_fuel_rate_3p6=nullptr;
-  SCIP_EXPR *inv_sum_fuel_rate_50=nullptr;
   {
     std::vector<SCIP_Real> vals(N);
     for (size_t i=0;i<N;i++){
@@ -110,15 +107,25 @@ int solve(
     }
     SCIP_EXPR * terms[1];
     SCIP_CALL ( SCIPcreateExprSum(g,&sum_fuel_rate,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
-    terms[0]=sum_fuel_rate;
-    //later need 1/(3.6 x)
-    SCIP_CALL ( SCIPcreateExprProduct(g,&sum_fuel_rate_3p6,1,terms,3.6,NULL,NULL));
-    SCIP_CALL ( SCIPcreateExprSignpower(g,&inv_sum_fuel_rate_3p6,sum_fuel_rate_3p6,-1.0,NULL,NULL));
-    //later need 1/(50 x)
-    SCIP_CALL ( SCIPcreateExprProduct(g,&sum_fuel_rate_50,1,terms,50.0,NULL,NULL));
-    SCIP_CALL ( SCIPcreateExprSignpower(g,&inv_sum_fuel_rate_50,sum_fuel_rate_50,-1.0,NULL,NULL));
-    //just in case, 1/x
-    SCIP_CALL ( SCIPcreateExprSignpower(g,&inv_sum_fuel_rate,sum_fuel_rate,-1.0,NULL,NULL));
+  }
+
+
+  //TODO, put this into module.hpp like fuel_cap vs fuel_rate?
+  SCIP_EXPR *sum_power_production=nullptr;
+  SCIP_EXPR *sum_power_consumption=nullptr;
+  {
+    std::vector<SCIP_Real> coefficients_producers(N);
+    std::vector<SCIP_Real> coefficients_consumers(N);
+
+    for (size_t i=0;i<N;i++){
+      if (mods[i].energy > 0){
+        coefficients_producers[i] = std::fabs(mods[i].energy);
+      } else {
+        coefficients_consumers[i] = std::fabs(mods[i].energy);
+      }
+    }
+    SCIP_CALL ( SCIPcreateExprSum(g,&sum_power_production,N,ex_vars.data(),coefficients_producers.data(),0.0,NULL,NULL));
+    SCIP_CALL ( SCIPcreateExprSum(g,&sum_power_consumption,N,ex_vars.data(),coefficients_consumers.data(),0.0,NULL,NULL));
   }
 
   SCIP_EXPR *sum_thrust_mn=nullptr;
@@ -171,39 +178,6 @@ int solve(
     SCIP_CALL ( SCIPcreateExprSum(g,&sum_crew,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
   }
   
-  SCIP_EXPR *sum_energy=nullptr;
-  {
-    std::vector<SCIP_Real> vals(N);
-    for (size_t i=0;i<N;i++){
-      vals[i] = mods[i].energy;
-    }
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_energy,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
-  }
-
-  SCIP_EXPR *sum_energy_production=nullptr;
-  {
-    std::vector<SCIP_Real> vals(N);
-    for (size_t i=0;i<N;i++){
-      if (mods[i].energy>0){
-        vals[i]=mods[i].energy;
-      }
-      vals[i] = 0;
-    }
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_energy_production,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
-  }
-
-  SCIP_EXPR *sum_energy_consumption=nullptr;
-  {
-    std::vector<SCIP_Real> vals(N);
-    for (size_t i=0;i<N;i++){
-      if (mods[i].energy<0){
-        vals[i]=mods[i].energy;
-      }
-      vals[i] = 0;
-    }
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_energy_consumption,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
-  }
-
   SCIP_EXPR *sum_firepower=nullptr;
   {
     std::vector<SCIP_Real> vals(N);
@@ -219,7 +193,7 @@ int solve(
   /* 
    * Set TWR Constraints, and make them consistent with speed constraints
   */
-  double twr_lb_val = std::min(bounds.speed[0]/89.9, bounds.twr[0]);//TODO: missing constant
+  double twr_lb_val = std::max(bounds.speed[0]/89.9, bounds.twr[0]);//TODO: missing constant
   double twr_ub_val = std::min(bounds.speed[1]/89.9, bounds.twr[1]);
   SCIP_CONS* twr_lb_cons;
   SCIP_CONS* twr_ub_cons;
@@ -248,6 +222,28 @@ int solve(
     //
   }
 
+  /*
+   * Set power production / use constraints as
+   * production/consumption > lower_bound
+   */
+  SCIP_CONS* power_lb_cons;
+  {
+    //P/C > LB --> P - LB.C > 0
+    SCIP_EXPR* power_lhs_lb, *power_lhs_ub;
+    
+    SCIP_EXPR* terms[2];
+    terms[0]=sum_power_production;
+    terms[1]=sum_power_consumption;
+    //
+    SCIP_Real coefficients[2];
+    //
+    coefficients[0]=1.0;
+    coefficients[1]= - bounds.min_pwr_ratio;
+    SCIP_CALL ( SCIPcreateExprSum(g,&power_lhs_lb,2,terms,coefficients,0.0,NULL,NULL));
+    SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&power_lb_cons, "Power Ratio LB" ,power_lhs_lb, 0.0, SCIPinfinity(g)));
+    SCIP_CALL ( SCIPaddCons(g,power_lb_cons));
+  }
+
   //assuming correct units:
   //via /u/jodavaho & /u/d0d0b1rd
   //Range = sum_fuel_cap / ( sum_fuel_rate ) * speed
@@ -264,6 +260,8 @@ int solve(
   //Combat Time: sum(fuel_cap) / (sum(fuel_rate)*50) in seconds
   //TODO: sum_fuel_cap / fuel_rate < CUB*50
   //TODO: sum_fuel_cap - fuel_rate * CUB*50 < 0
+  //TODO: - sum_fuel_cap + fuel_rate * CUB*50 > 0
+  //
   //TODO: sum_fuel_cap / fuel_rate > CLB*50
   //TODO: sum_fuel_cap - fuel_rate * CLB*50 > 0
 
@@ -340,8 +338,8 @@ int execopt(int argc, char** argv){
   b.twr[1]=5;
   b.twr[0]=1;
   std::vector<module> req;
-  req.push_back( *by_name("RD_51") );
-  req.push_back( *by_name("d_80") );
+  //req.push_back( *by_name("RD_51") );
+  //req.push_back( *by_name("d_80") );
   req.push_back( *by_name("d_80") );
   return solve(counts, available_mods, b, req );
 }
