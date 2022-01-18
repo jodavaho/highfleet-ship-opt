@@ -60,12 +60,16 @@ int solve(
 
   //tally up the required modules first
   std::unordered_map<std::string,size_t> mod_minimums;
+  std::unordered_map<std::string,size_t> mod_maximums;
   for (const auto &mod: mods){
     mod_minimums[mod.name]=0;
+    mod_maximums[mod.name]=100;
   }
   for (const auto &req: required){
     mod_minimums[req.name]++;
   }
+  mod_minimums["bridge"]=1;
+  mod_maximums["bridge"]=1;
  
   //create optimization variables for n_<mod> for each mod
   for (size_t i=0;i<N;i++){
@@ -77,11 +81,13 @@ int solve(
     auto varp = &vars[i];
     //create var for count
     size_t min = mod_minimums[m.name];
+    size_t max = mod_maximums[m.name];
     assert(min>=0);
+    assert(max<=100);
     if (min>0){
-       std::cout<<"req: "<<min<<"<n_"<<m.name<<"<"<<SCIPinfinity(g)<<std::endl;
+       std::cout<<"req: "<<min<<"<n_"<<m.name<<"<"<<max<<std::endl;
     }
-    SCIP_CALL ( SCIPcreateVarBasic(g,varp, nam.c_str(), min, SCIPinfinity(g), m.cost, SCIP_VARTYPE_INTEGER) ) ;
+    SCIP_CALL ( SCIPcreateVarBasic(g,varp, nam.c_str(), min, max, m.cost, SCIP_VARTYPE_INTEGER) ) ;
     SCIP_CALL ( SCIPaddVar(g,*varp) );
     auto ex_varp = &ex_vars[i];
     //create xprvar for count
@@ -169,13 +175,21 @@ int solve(
     SCIP_CALL ( SCIPcreateExprSum(g,&sum_weight,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
   }
 
-  SCIP_EXPR *sum_crew=nullptr;
+  SCIP_EXPR *sum_crew_have=nullptr;
+  SCIP_EXPR *sum_crew_need=nullptr;
   {
-    std::vector<SCIP_Real> vals(N);
+    std::vector<SCIP_Real> coefficients_crew_have(N);
+    std::vector<SCIP_Real> coefficients_crew_need(N);
     for (size_t i=0;i<N;i++){
-      vals[i] = mods[i].crew;
+      double crewr = mods[i].crew;
+      if (crewr>0){
+        coefficients_crew_have[i] = std::fabs(crewr);
+      } else {
+        coefficients_crew_need[i] = std::fabs(crewr);
+      }
     }
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_crew,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
+    SCIP_CALL ( SCIPcreateExprSum(g,&sum_crew_have,N,ex_vars.data(),coefficients_crew_have.data(),0.0,NULL,NULL));
+    SCIP_CALL ( SCIPcreateExprSum(g,&sum_crew_need,N,ex_vars.data(),coefficients_crew_need.data(),0.0,NULL,NULL));
   }
   
   SCIP_EXPR *sum_firepower=nullptr;
@@ -302,18 +316,40 @@ int solve(
   SCIP_CALL ( SCIPaddCons(g,maximum_cost_cons) );
 
   /*
-   * OK
+   * Ammo balanced
   */
   SCIP_CONS* ammo_balanced_cons;
-  SCIP_CALL( SCIPcreateConsBasicNonlinear(g,&ammo_balanced_cons,"Ammo Balanced", sum_ammo, 0, 0) );
+  SCIP_CALL( SCIPcreateConsBasicNonlinear(g,&ammo_balanced_cons,"Ammo Balanced", sum_ammo, 0, SCIPinfinity(g)) );
   SCIP_CALL( SCIPaddCons(g,ammo_balanced_cons));
 
   /*
-   * OK
+   * Maximum weight
   */
   SCIP_CONS* maximum_weight_cons;
   SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&maximum_weight_cons, "Maximum_Weight", sum_weight,bounds.weight[0], bounds.weight[1]) );
   SCIP_CALL ( SCIPaddCons(g,maximum_weight_cons));
+
+  /*
+   * Set power production / use constraints as
+   * production/consumption > lower_bound
+   */
+  SCIP_CONS* crew_ratio;
+  {
+    //Crew/Req > LB --> Crew - LB x Req > 0
+    SCIP_EXPR* crew_lhs_lb;
+    
+    SCIP_EXPR* terms[2];
+    terms[0]=sum_crew_have;
+    terms[1]=sum_crew_need;
+    //
+    SCIP_Real coefficients[2];
+    //
+    coefficients[0]=1.0;
+    coefficients[1]= - bounds.min_crew_ratio;
+    SCIP_CALL ( SCIPcreateExprSum(g,&crew_lhs_lb,2,terms,coefficients,0.0,NULL,NULL));
+    SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&crew_ratio, "Crew Ratio" ,crew_lhs_lb, 0.0, SCIPinfinity(g)));
+    SCIP_CALL ( SCIPaddCons(g,crew_ratio));
+  }
  
   /*
    * fuel_cap / (fuel_rate * 50 ) < CTUB
@@ -351,6 +387,9 @@ int execopt(int argc, char** argv){
   std::vector<module> req;
   //req.push_back( *by_name("RD_51") );
   //req.push_back( *by_name("d_80") );
+  req.push_back( *by_name("d_80") );
+  req.push_back( *by_name("d_80") );
+  req.push_back( *by_name("d_80") );
   req.push_back( *by_name("d_80") );
   return solve(counts, available_mods, b, req );
 }

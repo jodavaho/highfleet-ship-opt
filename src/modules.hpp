@@ -21,7 +21,7 @@ using ModuleSet = std::set<module, decltype([](const module&a, const module&b){r
 
 ModuleSet create_all_mods(){
   ModuleSet ret;
-  //TODO forgot bridge
+  ret.insert({"bridge",                2,  2,  4,   25,   100,   0,     0,     60,    0,    0,     0,     0,   0,   0});
   ret.insert({"hull",                2,  2,  4,   25.8,   100,  20,     0,      0,    0,    0,     0,     0,   0,   0});
   ret.insert({"hulltriangle",        2,  2,  4,   25.8,   100,  20,     0,      0,    0,    0,     0,     0,   0,   0});
   ret.insert({"hullinvertedcorner",  2,  2,  4,   25.8,   100,  20,     0,      0,    0,    0,     0,     0,   0,   0});
