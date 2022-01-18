@@ -217,9 +217,10 @@ int solve(
   //
 
   /* 
-   * Set TWR Constraints
-   * TODO: Absorb speed constraints here
+   * Set TWR Constraints, and make them consistent with speed constraints
   */
+  double twr_lb_val = std::min(bounds.speed[0]/89.9, bounds.twr[0]);//TODO: missing constant
+  double twr_ub_val = std::min(bounds.speed[1]/89.9, bounds.twr[1]);
   SCIP_CONS* twr_lb_cons;
   SCIP_CONS* twr_ub_cons;
   {
@@ -234,12 +235,12 @@ int solve(
     SCIP_Real coefficients[2];
     //
     coefficients[0]=1.0;
-    coefficients[1]=-bounds.twr[0];
+    coefficients[1]=- twr_lb_val;
     SCIP_CALL ( SCIPcreateExprSum(g,&twr_lhs_lb,2,terms,coefficients,0.0,NULL,NULL));
     SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&twr_lb_cons, "TWR LB" ,twr_lhs_lb, 0.0, SCIPinfinity(g)));
     SCIP_CALL ( SCIPaddCons(g,twr_lb_cons));
     // opposite sign (>0)
-    coefficients[0]=bounds.twr[1];
+    coefficients[0]= twr_ub_val;
     coefficients[1]=-1.0;
     SCIP_CALL ( SCIPcreateExprSum(g,&twr_lhs_ub,2,terms,coefficients,0.0,NULL,NULL));
     SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&twr_ub_cons, "TWR UB" ,twr_lhs_ub, 0.0, SCIPinfinity(g)));
