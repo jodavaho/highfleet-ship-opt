@@ -1,5 +1,12 @@
 #ifndef MODULES_H
+
+
 struct module{
+  enum mounting{
+    SMALL,
+    LARGE,
+    EXTERIOR
+  }mount;
   std::string name;
   double w;
   double h;
@@ -15,6 +22,27 @@ struct module{
   double ammo;
   double firepower;
   double fpl;
+  std::optional<module> get_hull() const
+  {
+    return get_hull(sq,mount);
+  }
+  static std::optional<module> get_hull(const double sqs,const module::mounting mount)
+  {
+    switch(mount){
+      case LARGE:{ return by_name("largehull"); }
+      case EXTERIOR:{ return {}; }
+      case SMALL:{ 
+                   if (sqs==2.0){
+                     return by_name("2x1hull");
+                   } else if (sqs==1.0){
+                     return by_name("smallhull");
+                   } else {
+                     return by_name("hull");
+                   }
+                 }
+    };
+  }
+
 };
 
 using ModuleSet = std::set<module, decltype([](const module&a, const module&b){return a.name<b.name;})>;

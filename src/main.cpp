@@ -53,7 +53,7 @@ int solve(
   SCIP_CALL( SCIPincludeDefaultPlugins(g));
   SCIP_CALL( SCIPcreateProbBasic(g, "Highfleet_Component_Selection"));
   SCIP_CALL( SCIPsetObjsense(g, SCIP_OBJSENSE_MINIMIZE));
-  SCIP_CALL( SCIPsetRealParam(g, "limits/gap", 0.05) );
+  SCIP_CALL( SCIPsetRealParam(g, "limits/gap", 0.01) );
   size_t N = mods.size();
   vars.reserve(N);
   ex_vars.reserve(N);
@@ -84,15 +84,12 @@ int solve(
     size_t max = mod_maximums[m.name];
     assert(min>=0);
     assert(max<=100);
-    if (min>0){
-       std::cout<<"req: "<<min<<"<n_"<<m.name<<"<"<<max<<std::endl;
-    }
     SCIP_CALL ( SCIPcreateVarBasic(g,varp, nam.c_str(), min, max, m.cost, SCIP_VARTYPE_INTEGER) ) ;
     SCIP_CALL ( SCIPaddVar(g,*varp) );
     auto ex_varp = &ex_vars[i];
     //create xprvar for count
     SCIP_CALL ( SCIPcreateExprVar(g,ex_varp,*varp,NULL,NULL) );
-    std::cout<<"Created: "<<nam<<std::endl;
+    //std::cout<<"Created: "<<nam<<std::endl;
   }
 
   //create the sum_of(resource) for each resource
@@ -351,13 +348,6 @@ int solve(
     SCIP_CALL ( SCIPaddCons(g,crew_ratio));
   }
  
-  /*
-   * fuel_cap / (fuel_rate * 50 ) < CTUB
-   * TODO: fuel_cap - CTUB * (fuel_rate * 50 ) < 0
-   * fuel_cap / (fuel_rate * 50 ) > CTLB
-   * TODO: fuel_cap - CTLB * (fuel_rate * 50 ) > 0
-  */
-
   SCIP_CALL( SCIPprintOrigProblem(g, NULL, "cip", FALSE) ); 
   //fucking compiled without support:
   //SCIP_CALL ( SCIPsolveParallel(g) );
@@ -376,14 +366,14 @@ int execopt(int argc, char** argv){
   std::vector<size_t> counts;
   std::vector<module> available_mods;
   for (auto m: all_modules){
-    //std::cout<<"Adding: "<<m.name<<std::endl;
-    std::cout<<"Adding: "<<m<<std::endl;
+    //std::cout<<"Adding: "<<m<<std::endl;
     available_mods.push_back(m);
   }
   Bounds b;
   b.twr[1]=5;
   b.twr[0]=1;
-  b.range[0]=1000;
+  b.range[0]=3000;
+  b.speed[0]=500;
   std::vector<module> req;
   //req.push_back( *by_name("RD_51") );
   //req.push_back( *by_name("d_80") );
