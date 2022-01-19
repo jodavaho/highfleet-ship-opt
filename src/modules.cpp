@@ -41,11 +41,6 @@ std::optional<module> module::get_hull() const
   return module_helpers::get_hull(sq,mount);
 }
 
-
-//define useful datastructure with name-based comparator. 
-using ModuleSet = std::set<module, decltype([](const module&a, const module&b){return a.name<b.name;})>;
-ModuleSet all_modules;
-
 ModuleSet create_all_mods(){
   ModuleSet ret;
   ret.insert({"bridge",              2,  2,  4,   25,     100,   0,     0,     60,    0,    0,     0,     0,   0,   0});
@@ -107,14 +102,11 @@ ModuleSet create_all_mods(){
   return ret;
 }
 
-std::vector<module> get_all_modules()
+const ModuleSet all_modules = create_all_mods();
+
+ModuleSet get_all_modules()
 {
-  if (all_modules.size()==0){
-    all_modules=create_all_mods();
-  }
-  std::vector<module> ret;
-  ret.insert(ret.begin(), all_modules.begin(), all_modules.end());
-  return ret;
+  return all_modules;
 }
 
 std::ostream& operator<<(std::ostream& os, const module&m){

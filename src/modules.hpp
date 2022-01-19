@@ -44,8 +44,21 @@ std::optional<const module> by_name(std::string des);
 //e.g., std::cout<< *by_name("bridge") <<std::endl;
 std::ostream& operator<<(std::ostream& os, const module&m);
 
+//define useful datastructure with name-based comparator. 
+//c++20 should allow:
+//auto namecomp = [](const module&a, const module&b){return a.name<b.name;};
+//using ModuleSet = std::set<module, decltype(namecomp)>;
+
+struct namecmp{
+  bool operator()(module a, module b)const{
+    return a.name<b.name;
+  }
+};
+using ModuleSet = std::set<module, namecmp>;
+
 //return all modules for iteration
 //e.g.,. for (const auto m: get_all_modules()) {...}
-std::vector<module> get_all_modules();
+ModuleSet get_all_modules();
+
 
 #endif
