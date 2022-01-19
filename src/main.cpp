@@ -40,11 +40,16 @@ struct Bounds{
   double min_crew_ratio=1.0;
 };
 
+struct Options{
+  bool include_hull=true;
+};
+
 int solve(
     std::vector<size_t> &out_counts,
     const std::vector<module> &mods,
     const Bounds bounds=Bounds(),
-    const std::vector<module> required={} 
+    const std::vector<module> required={} ,
+    const Options opts={}
     )
 {
 
@@ -162,7 +167,6 @@ int solve(
     SCIP_CALL ( SCIPcreateExprSum(g,&sum_ammo,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
   }
 
-
   SCIP_EXPR *sum_weight=nullptr;
   {
     std::vector<SCIP_Real> vals(N);
@@ -200,6 +204,73 @@ int solve(
 
   //////////////////// Design constraints
   //
+
+  /*
+   * Set hull constraints
+   */
+
+  SCIP_CONS * large_hull_included;
+  SCIP_CONS * small_hull_included;
+  if (opts.include_hull){
+    //sum(n_X) for [X=needs small] == sum(n_Y) [Y=small hull] We don't choose
+    //hull parts, we tally the # of hull spaces required for each type (large,
+    //small), and let the algorithm choose hull parts to fit the need. That way
+    //if hull parts change in cost / size, we just recalculate. If we
+    //custom-designed which hull parts went with which item, we'd be up a creek 
+    SCIP_EXPR* large_needs, *small_needs;
+    SCIP_EXPR* large_has, *small_has;
+    SCIP_EXPR* large_diff, *small_diff;
+    SCIP_EXPR* terms[2];
+    SCIP_Real coefficients[2];
+
+    std::vector<SCIP_Real> small_requires(N);
+    std::vector<SCIP_Real> large_requires(N);
+    std::vector<SCIP_Real> small_provides(N);
+    std::vector<SCIP_Real> large_provides(N);
+
+    for (size_t i=0;i<N;i++){
+      switch (mods[i].mount){
+        case module::SMALL:{ small_requires[i] = mods[i].sq; break; }
+        case module::LARGE: { large_requires[i] = 1; }
+        case module::EXTERIOR:{ break; }
+        case module::HULL: { 
+                             if (mods[i].sq==16){
+                               large_provides[i]=1;
+                             } else {
+                               small_provides[i]=mods[i].sq;
+                             }
+                             break; }
+      }
+    }
+
+    SCIP_CALL( SCIPcreateExprSum(g,&small_needs, N, ex_vars.data(), small_requires.data(), 0.0, NULL, NULL));
+    SCIP_CALL( SCIPcreateExprSum(g,&large_needs, N, ex_vars.data(), large_requires.data(), 0.0, NULL, NULL));
+    SCIP_CALL( SCIPcreateExprSum(g,&small_has, N, ex_vars.data(), small_provides.data(), 0.0, NULL, NULL));
+    SCIP_CALL( SCIPcreateExprSum(g,&large_has, N, ex_vars.data(), large_provides.data(), 0.0, NULL, NULL));
+
+    terms[0]=small_has;
+    terms[1]=small_needs;
+    coefficients[0]=1.0;
+    coefficients[1]=-1.0;
+    SCIP_CALL( SCIPcreateExprSum(g,&small_diff, 2, terms,coefficients,0.0,NULL,NULL));
+    SCIP_CALL( SCIPcreateConsBasicNonlinear(g,&small_hull_included, "Small Hull Included",small_diff,0.0,0.0));
+    terms[0]=large_has;
+    terms[1]=large_needs;
+    coefficients[0]=1.0;
+    coefficients[1]=-1.0;
+    SCIP_CALL( SCIPcreateExprSum(g,&large_diff, 2, terms,coefficients,0.0,NULL,NULL));
+    SCIP_CALL( SCIPcreateConsBasicNonlinear(g,&large_hull_included, "Large Hull Included",large_diff,0.0,0.0));
+    SCIP_CALL( SCIPaddCons(g, small_hull_included) );
+    SCIP_CALL( SCIPaddCons(g, large_hull_included) );
+    SCIPreleaseExpr(g,&small_needs);
+    SCIPreleaseExpr(g,&small_has);
+    SCIPreleaseExpr(g,&small_diff);
+    SCIPreleaseExpr(g,&large_needs);
+    SCIPreleaseExpr(g,&large_has);
+    SCIPreleaseExpr(g,&large_diff);
+  }
+
+
 
   /* 
    * Set TWR Constraints, and make them consistent with speed constraints
@@ -370,16 +441,15 @@ int execopt(int argc, char** argv){
   Bounds b;
   b.twr[1]=5;
   b.twr[0]=1;
-  b.range[0]=3000;
-  b.speed[0]=500;
+  b.range[0]=1000;
+  b.speed[0]=100;
   std::vector<module> req;
   //req.push_back( *by_name("RD_51") );
   //req.push_back( *by_name("d_80") );
-  req.push_back( *by_name("d_80") );
-  req.push_back( *by_name("d_80") );
-  req.push_back( *by_name("d_80") );
-  req.push_back( *by_name("d_80") );
-  return solve(counts, available_mods, b, req );
+  req.push_back( *by_name("FuelLarge") );
+  Options opts;
+  opts.include_hull=true;
+  return solve(counts, available_mods, b, req, opts );
 }
 
 int main(int argc, char** argv){
