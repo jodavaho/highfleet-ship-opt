@@ -1,7 +1,8 @@
 #ifndef hf_problem_hpp
 #define hf_problem_hpp
 
-#include "scip_help.hpp"
+#include "scip-help.hpp"
+#include "modules.hpp"
 
 struct Bounds{
   double cost[2]={0,1e7};
@@ -266,8 +267,8 @@ int solve(
     SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&twr_lb_cons, "TWR LB" ,twr_lhs_lb, 0.0, SCIPinfinity(g)));
     SCIP_CALL ( SCIPaddCons(g,twr_lb_cons));
     // opposite sign (>0)
-    coefficients[0]= twr_ub_val;
-    coefficients[1]=-1.0;
+    coefficients[0]=-1.0;
+    coefficients[1]= twr_ub_val;
     SCIP_CALL ( SCIPcreateExprSum(g,&twr_lhs_ub,2,terms,coefficients,0.0,NULL,NULL));
     SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&twr_ub_cons, "TWR UB" ,twr_lhs_ub, 0.0, SCIPinfinity(g)));
     SCIP_CALL ( SCIPaddCons(g,twr_ub_cons));

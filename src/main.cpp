@@ -8,7 +8,7 @@
 
 #include "modules.hpp"
 #include "opts.hpp"
-#include "hf_problem.hpp"
+#include "hf-problem.hpp"
 
 int execopt(int argc, char** argv){
   std::vector<size_t> counts;
