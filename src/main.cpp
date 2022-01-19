@@ -347,9 +347,7 @@ int solve(
   //Range = sum_fuel_cap / ( sum_fuel_rate ) * speed
   //
   //sum_fuel_cap / (sum_fuel_rate) * speed < RUP //who needs an upper bound?
-  //TODO Avoid coding up: sum_fuel_cap * speed - RUP * sum_fuel_rate < 0
   //sum_fuel_cap / (sum_fuel_rate) * speed > RLO
-  //TODO: sum_fuel_cap * speed - RLO * sum_fuel_rate > 0
   SCIP_CONS* range_lb_cons;
   {
     //OK.
