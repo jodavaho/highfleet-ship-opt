@@ -3,6 +3,7 @@
 
 #include <string>
 #include <optional>
+#include <vector>
 #include <set>
 
 /**
@@ -34,21 +35,17 @@ struct module{
   std::optional<module> get_hull() const;
 };
 
-
-//define useful datastructure with name-based comparator. 
-using ModuleSet = std::set<module, decltype([](const module&a, const module&b){return a.name<b.name;})>;
-
 //search among all known modules for one by name, return {} if none exists.
 //(e.g., if ( auto x=by_name(...)) do_work(*x); )
 std::optional<const module> by_name(std::string des);
-
-//return all modules for iteration
-//e.g.,. for (const auto m: get_all_modules()) {...}
-ModuleSet get_all_modules();
 
 //define output stream formatting, 
 //
 //e.g., std::cout<< *by_name("bridge") <<std::endl;
 std::ostream& operator<<(std::ostream& os, const module&m);
+
+//return all modules for iteration
+//e.g.,. for (const auto m: get_all_modules()) {...}
+std::vector<module> get_all_modules();
 
 #endif

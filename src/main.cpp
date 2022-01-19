@@ -362,11 +362,9 @@ int solve(
 }
 
 int execopt(int argc, char** argv){
-  ModuleSet all;
   std::vector<size_t> counts;
   std::vector<module> available_mods;
   for (const auto m: get_all_modules()){
-    //std::cout<<"Adding: "<<m<<std::endl;
     available_mods.push_back(m);
   }
   Bounds b;
@@ -385,6 +383,5 @@ int execopt(int argc, char** argv){
 }
 
 int main(int argc, char** argv){
- 
   return execopt(argc,argv)!=SCIP_OKAY ? 1:0;
 }

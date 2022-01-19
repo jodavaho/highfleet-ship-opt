@@ -23,28 +23,7 @@ namespace module_helpers{
     };
     return {};
   }
-}
-
-ModuleSet create_all_mods();
-static ModuleSet all_modules = create_all_mods();
-
-ModuleSet get_all_modules()
-{
-  return all_modules;
-}
-
-std::ostream& operator<<(std::ostream& os, const module&m){
-  os<<m.name<<" ";
-  os<<"$"<<m.cost<<" ";
-  os<<m.weight<<"T ";
-  os<<m.thrust<<"MN ";
-  os<<m.fuel_cap<<"Tf ";
-  os<<m.fuel_rate<<"kg/s ";
-  os<<m.ammo<<"ammo ";
-  os<<m.crew<<"crew ";
-  os<<m.energy<<"MW ";
-  return os;
-}
+};
 
 std::optional<const module> by_name(std::string des)
 {
@@ -62,6 +41,10 @@ std::optional<module> module::get_hull() const
   return module_helpers::get_hull(sq,mount);
 }
 
+
+//define useful datastructure with name-based comparator. 
+using ModuleSet = std::set<module, decltype([](const module&a, const module&b){return a.name<b.name;})>;
+ModuleSet all_modules;
 
 ModuleSet create_all_mods(){
   ModuleSet ret;
@@ -123,3 +106,27 @@ ModuleSet create_all_mods(){
   ret.insert({"SK_2M",               1,  1,  1,   17.9,   20,   100,    0,      0,    0,    0,     0,     0,   0,   0});
   return ret;
 }
+
+std::vector<module> get_all_modules()
+{
+  if (all_modules.size()==0){
+    all_modules=create_all_mods();
+  }
+  std::vector<module> ret;
+  ret.insert(ret.begin(), all_modules.begin(), all_modules.end());
+  return ret;
+}
+
+std::ostream& operator<<(std::ostream& os, const module&m){
+  os<<m.name<<" ";
+  os<<"$"<<m.cost<<" ";
+  os<<m.weight<<"T ";
+  os<<m.thrust<<"MN ";
+  os<<m.fuel_cap<<"Tf ";
+  os<<m.fuel_rate<<"kg/s ";
+  os<<m.ammo<<"ammo ";
+  os<<m.crew<<"crew ";
+  os<<m.energy<<"MW ";
+  return os;
+}
+
