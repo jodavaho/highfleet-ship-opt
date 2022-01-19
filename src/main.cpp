@@ -13,8 +13,6 @@
 SCIP* g = NULL;
 std::vector<SCIP_VAR*> vars;
 std::vector<SCIP_EXPR*> ex_vars;
-SCIP_SOL * solution = NULL;
-SCIP_CONSHDLR * conshdlr_nl;
 
 struct SCIPLOCK{
   SCIPLOCK(){}
@@ -27,6 +25,24 @@ struct SCIPLOCK{
     }
     if(g){SCIPfree(&g);}
   }
+};
+
+struct sCONS{
+  sCONS(SCIP*g):g_(g){};
+  ~sCONS(){SCIPreleaseCons(g_,&p_);}
+  operator bool() const {return p_!=nullptr;}
+  operator SCIP_CONS*(){ return p_;}
+  SCIP_CONS* p_;
+  SCIP*      g_;
+};
+
+struct sEXPR{
+  sEXPR(SCIP*g):g_(g){};
+  ~sEXPR(){SCIPreleaseExpr(g_,&p_);}
+  operator bool() const {return p_!=nullptr;}
+  operator SCIP_EXPR*(){ return p_;}
+  SCIP_EXPR* p_;
+  SCIP*      g_;
 };
 
 struct Bounds{
