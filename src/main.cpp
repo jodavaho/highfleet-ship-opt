@@ -20,12 +20,16 @@ int execopt(int argc, char** argv){
   b.twr[1]=5;
   b.twr[0]=1;
   b.range[0]=1000;
-  b.speed[0]=100;
+  b.speed[0]=400;
   std::vector<module> req;
-  //req.push_back( *by_name("RD_51") );
-  //req.push_back( *by_name("d_80") );
-  req.push_back( *by_name("FuelLarge") );
-  Options opts;
+
+  for (int argi=1;argi<argc;argi++){
+    auto req_mod = by_name(argv[argi]);
+    if (req_mod){
+      req.push_back(*req_mod);
+    }
+  }
+  SolveOptions opts;
   opts.include_hull=true;
   return solve(counts, available_mods, b, req, opts );
 }

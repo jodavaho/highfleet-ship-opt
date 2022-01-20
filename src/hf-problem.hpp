@@ -4,6 +4,10 @@
 #include "scip-help.hpp"
 #include "modules.hpp"
 
+struct SolveOptions{
+  bool include_hull=true;
+};
+
 struct Bounds{
   double cost[2]={0,1e7};
   double weight[2]={0,1e7};
@@ -20,7 +24,7 @@ int solve(
     const std::vector<module> &mods,
     const Bounds bounds=Bounds(),
     const std::vector<module> required={} ,
-    const Options opts={}
+    const SolveOptions opts={}
     )
 {
 

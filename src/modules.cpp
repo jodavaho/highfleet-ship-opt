@@ -11,6 +11,7 @@ namespace module_helpers{
     switch(mount){
       case module::LARGE:{ return by_name("largehull"); }
       case module::EXTERIOR:{ return {}; }
+      case module::RUNWAY:{ return by_name("FlightDeck"); }
       case module::SMALL:{ 
                            if (sqs==2.0){
                              return by_name("2x1hull");

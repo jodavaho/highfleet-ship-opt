@@ -30,6 +30,7 @@ struct module{
     SMALL,
     LARGE,
     EXTERIOR,
+    RUNWAY,
     HULL
   }mount=SMALL;//default is small
   std::optional<module> get_hull() const;
