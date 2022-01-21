@@ -3,17 +3,22 @@ CXXFLAGS=-g -std=c++2a -I/usr/include/python3.8
 
 SRCD := src
 OBJD := build
-SRC  := $(wildcard $(SRCD)/*.cpp)
-OBJ  := $(patsubst $(SRCD)/%.cpp,$(OBJD)/%.o,$(SRC))
+LIBSRC  := $(wildcard $(SRCD)/lib/*.cpp)
+LIBOBJ  := $(patsubst $(SRCD)/lib/%.cpp,$(OBJD)/lib/%.o,$(LIBSRC))
+MAIN := src/main.cpp
 
-build/main: $(OBJ)
-	g++ $(CXXFLAGS) -o $@ $^ $(LIBA)
+build/main: build/hf.so $(MAIN) $(OBJD)
+	g++ $(CXXFLAGS) -o $@ $^ $(LIBA) 
 
-$(OBJD)/%.o: $(SRCD)/%.cpp $(OBJD)
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+build/hf.so: $(LIBOBJ) 
+	g++ -shared -Wl,-soname,libhf.so -o $@ $^ -lc
 
-build:
-	mkdir -p build
+$(LIBOBJ): $(LIBSRC)
+	$(CXX) $(CXXFLAGS) -fPIC -c -o $@ $<
+
+$(OBJD):
+	mkdir -p build/lib
+	mkdir -p build/bin
 
 clean:
 	rm -rf build/

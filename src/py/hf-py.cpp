@@ -1,7 +1,9 @@
 #include "hf-py.h"
 #include <python3.8/Python.h>
 
+#ifdef __cplusplus
 extern "C" {
+#endif
   Bounds init_bounds(){
     Bounds b;
     return b;
@@ -43,4 +45,7 @@ extern "C" {
     }
     return nullptr;
   }
+
+#ifdef __cplusplus
 }
+#endif
