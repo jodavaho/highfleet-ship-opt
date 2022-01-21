@@ -28,16 +28,18 @@ int solve(
     )
 {
 
-  SCIPLOCK lock;//RAII-ish
-  SCIP_CALL( SCIPcreate(&g));
-  SCIP_CALL( SCIPincludeDefaultPlugins(g));
+  SCIP* g; 
+  SCIP_CALL( SCIPcreate(&g) );
   SCIP_CALL( SCIPcreateProbBasic(g, "Highfleet_Component_Selection"));
+  SCIP_CALL( SCIPincludeDefaultPlugins(g));
   SCIP_CALL( SCIPsetObjsense(g, SCIP_OBJSENSE_MINIMIZE));
   SCIP_CALL( SCIPsetRealParam(g, "limits/gap", 0.01) );
   size_t N = mods.size();
   out_counts.reserve(N);
-  vars.reserve(N);
-  ex_vars.reserve(N);
+  std::vector<SCIP_VAR*> vars(N);
+  std::vector<SCIP_EXPR*> ex_vars(N);
+  std::vector<SCIP_EXPR**> other_expr;
+  std::vector<SCIP_CONS**> other_cons;
 
   //tally up the required modules first
   std::unordered_map<std::string,size_t> mod_minimums;
@@ -74,6 +76,7 @@ int solve(
 
   //create the sum_of(resource) for each resource
   SCIP_EXPR *sum_fuel_cap=nullptr;
+  other_expr.push_back(&sum_fuel_cap);
   {
     std::vector<SCIP_Real> vals(N);
     for (size_t i=0;i<N;i++){
@@ -83,6 +86,7 @@ int solve(
   }
 
   SCIP_EXPR *sum_fuel_rate=nullptr;
+  other_expr.push_back(&sum_fuel_rate);
   {
     std::vector<SCIP_Real> vals(N);
     for (size_t i=0;i<N;i++){
@@ -95,7 +99,9 @@ int solve(
 
   //TODO, put this into module.hpp like fuel_cap vs fuel_rate?
   SCIP_EXPR *sum_power_production=nullptr;
+  other_expr.push_back(&sum_power_production);
   SCIP_EXPR *sum_power_consumption=nullptr;
+  other_expr.push_back(&sum_power_consumption);
   {
     std::vector<SCIP_Real> coefficients_producers(N);
     std::vector<SCIP_Real> coefficients_consumers(N);
@@ -113,6 +119,8 @@ int solve(
 
   SCIP_EXPR *sum_thrust_mn=nullptr;
   SCIP_EXPR *sum_thrust_mtf=nullptr;
+  other_expr.push_back(&sum_thrust_mn);
+  other_expr.push_back(&sum_thrust_mtf);
   {
     std::vector<SCIP_Real> vals(N);
     for (size_t i=0;i<N;i++){
@@ -125,6 +133,7 @@ int solve(
   }
    
   SCIP_EXPR *sum_cost=nullptr;
+  other_expr.push_back(&sum_cost);
   {
     std::vector<SCIP_Real> vals(N);
     for (size_t i=0;i<N;i++){
@@ -134,6 +143,7 @@ int solve(
   }
 
   SCIP_EXPR *sum_ammo=nullptr;
+  other_expr.push_back(&sum_ammo);
   {
     std::vector<SCIP_Real> vals(N);
     for (size_t i=0;i<N;i++){
@@ -143,6 +153,7 @@ int solve(
   }
 
   SCIP_EXPR *sum_weight=nullptr;
+  other_expr.push_back(&sum_weight);
   {
     std::vector<SCIP_Real> vals(N);
     for (size_t i=0;i<N;i++){
@@ -153,6 +164,8 @@ int solve(
 
   SCIP_EXPR *sum_crew_have=nullptr;
   SCIP_EXPR *sum_crew_need=nullptr;
+  other_expr.push_back(&sum_crew_have);
+  other_expr.push_back(&sum_crew_need);
   {
     std::vector<SCIP_Real> coefficients_crew_have(N);
     std::vector<SCIP_Real> coefficients_crew_need(N);
@@ -169,6 +182,7 @@ int solve(
   }
   
   SCIP_EXPR *sum_firepower=nullptr;
+  other_expr.push_back(&sum_firepower);
   {
     std::vector<SCIP_Real> vals(N);
     for (size_t i=0;i<N;i++){
@@ -186,6 +200,8 @@ int solve(
 
   SCIP_CONS * large_hull_included;
   SCIP_CONS * small_hull_included;
+  other_cons.push_back(&large_hull_included);
+  other_cons.push_back(&small_hull_included);
   if (opts.include_hull){
     //sum(n_X) for [X=needs small] == sum(n_Y) [Y=small hull] We don't choose
     //hull parts, we tally the # of hull spaces required for each type (large,
@@ -238,11 +254,13 @@ int solve(
     SCIP_CALL( SCIPcreateConsBasicNonlinear(g,&large_hull_included, "Large Hull Included",large_diff,0.0,0.0));
     SCIP_CALL( SCIPaddCons(g, small_hull_included) );
     SCIP_CALL( SCIPaddCons(g, large_hull_included) );
+
+
     SCIPreleaseExpr(g,&small_needs);
     SCIPreleaseExpr(g,&small_has);
-    SCIPreleaseExpr(g,&small_diff);
     SCIPreleaseExpr(g,&large_needs);
     SCIPreleaseExpr(g,&large_has);
+    SCIPreleaseExpr(g,&small_diff);
     SCIPreleaseExpr(g,&large_diff);
   }
 
@@ -255,6 +273,8 @@ int solve(
   double twr_ub_val = std::min(bounds.speed[1]/89.9, bounds.twr[1]);
   SCIP_CONS* twr_lb_cons;
   SCIP_CONS* twr_ub_cons;
+  other_cons.push_back(&twr_lb_cons);
+  other_cons.push_back(&twr_ub_cons);
   {
     //T/W > LB --> T - LB.W > 0
     //T/W < UB --> T - UB.W < 0 --> UB.W-T > 0
@@ -277,6 +297,9 @@ int solve(
     SCIP_CALL ( SCIPcreateExprSum(g,&twr_lhs_ub,2,terms,coefficients,0.0,NULL,NULL));
     SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&twr_ub_cons, "TWR UB" ,twr_lhs_ub, 0.0, SCIPinfinity(g)));
     SCIP_CALL ( SCIPaddCons(g,twr_ub_cons));
+
+    SCIPreleaseExpr(g, &twr_lhs_lb);
+    SCIPreleaseExpr(g, &twr_lhs_ub);
     //
   }
 
@@ -284,10 +307,10 @@ int solve(
    * Set power production / use constraints as
    * production/consumption > lower_bound
    */
-  SCIP_CONS* power_lb_cons;
   {
+    SCIP_CONS* power_lb_cons;
     //P/C > LB --> P - LB.C > 0
-    SCIP_EXPR* power_lhs_lb, *power_lhs_ub;
+    SCIP_EXPR* power_lhs_lb;
     
     SCIP_EXPR* terms[2];
     terms[0]=sum_power_production;
@@ -300,6 +323,9 @@ int solve(
     SCIP_CALL ( SCIPcreateExprSum(g,&power_lhs_lb,2,terms,coefficients,0.0,NULL,NULL));
     SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&power_lb_cons, "Power Ratio LB" ,power_lhs_lb, 0.0, SCIPinfinity(g)));
     SCIP_CALL ( SCIPaddCons(g,power_lb_cons));
+
+    SCIPreleaseCons(g,&power_lb_cons);
+    SCIPreleaseExpr(g,&power_lhs_lb);
   }
 
   //assuming correct units:
@@ -308,15 +334,15 @@ int solve(
   //
   //sum_fuel_cap / (sum_fuel_rate) * speed < RUP //who needs an upper bound?
   //sum_fuel_cap / (sum_fuel_rate) * speed > RLO
-  SCIP_CONS* range_lb_cons;
   {
+    SCIP_CONS* range_lb_cons;
     //OK.
     // speed (km/h)  times fuel_cap / fuel_burn (T / T/H = H) = km
     // spd . fuel_cap / fuel_rate > LB
     // 89.9 T/W . fuel_cap / fuel_rate > LB
     // 89.9 T . fuel_cap > LB . W . fuel_rate
     // 89.9 T . fc - LB . w . fr > 0
-    SCIP_EXPR* range_lhs_lb, *range_lhs_ub;
+    SCIP_EXPR* range_lhs_lb;
     
     SCIP_EXPR* prod_terms[2];
     SCIP_EXPR* TxFC;
@@ -335,9 +361,14 @@ int solve(
     SCIP_Real coefficients[2];
     coefficients[0]=1.0;
     coefficients[1]= - bounds.range[0];
+
     SCIP_CALL ( SCIPcreateExprSum(g,&range_lhs_lb,2,sum_terms,coefficients,0.0,NULL,NULL));
     SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&range_lb_cons, "Range LB" ,range_lhs_lb, 0.0, SCIPinfinity(g)));
     SCIP_CALL ( SCIPaddCons(g,range_lb_cons));
+    SCIP_CALL ( SCIPreleaseCons(g,&range_lb_cons));
+    SCIP_CALL ( SCIPreleaseExpr(g,&range_lhs_lb));
+    SCIP_CALL ( SCIPreleaseExpr(g,&WxFR));
+    SCIP_CALL ( SCIPreleaseExpr(g,&TxFC));
   }
 
 
@@ -356,6 +387,7 @@ int solve(
   SCIP_CONS* maximum_cost_cons;
   SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&maximum_cost_cons, "Maximum_cost" ,sum_cost, bounds.cost[0], bounds.cost[1]));
   SCIP_CALL ( SCIPaddCons(g,maximum_cost_cons) );
+  SCIP_CALL ( SCIPreleaseCons(g,&maximum_cost_cons) );
 
   /*
    * Ammo balanced
@@ -363,6 +395,7 @@ int solve(
   SCIP_CONS* ammo_balanced_cons;
   SCIP_CALL( SCIPcreateConsBasicNonlinear(g,&ammo_balanced_cons,"Ammo Balanced", sum_ammo, 0, SCIPinfinity(g)) );
   SCIP_CALL( SCIPaddCons(g,ammo_balanced_cons));
+  SCIP_CALL( SCIPreleaseCons(g, &ammo_balanced_cons ));
 
   /*
    * Maximum weight
@@ -370,6 +403,7 @@ int solve(
   SCIP_CONS* maximum_weight_cons;
   SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&maximum_weight_cons, "Maximum_Weight", sum_weight,bounds.weight[0], bounds.weight[1]) );
   SCIP_CALL ( SCIPaddCons(g,maximum_weight_cons));
+  SCIP_CALL ( SCIPreleaseCons(g, &maximum_weight_cons));
 
   /*
    * Set power production / use constraints as
@@ -403,9 +437,21 @@ int solve(
     auto sol = SCIPgetBestSol(g);
     SCIP_CALL( SCIPprintSol(g, sol, NULL, FALSE) );
     for (int i=0;i<N;i++){
-      out_counts[i]=(size_t) SCIPgetSolVal(g,sol,vars[i]);
+      out_counts[i]=(size_t) std::round(SCIPgetSolVal(g,sol,vars[i]));
     }
   }
+
+  for (auto conspp: other_cons){
+    SCIPreleaseCons(g,conspp);
+  }
+  for (auto exprpp: other_expr){
+    SCIPreleaseExpr(g,exprpp);
+  }
+  for (int i=0;i<N;i++){
+    SCIPreleaseExpr(g,&ex_vars[i]);
+    SCIPreleaseVar(g,&vars[i]);
+  }
+  SCIPfree(&g);
 
   return SCIP_OKAY;
 }

@@ -23,7 +23,7 @@ int execopt(int argc, char** argv){
   b.speed[0]=400;
   std::vector<module> req;
 
-  for (int argi=1;argi<argc;argi++){
+  for (int argi=0;argi<argc;argi++){
     auto req_mod = by_name(argv[argi]);
     if (req_mod){
       req.push_back(*req_mod);
@@ -34,6 +34,15 @@ int execopt(int argc, char** argv){
   return solve(counts, available_mods, b, req, opts );
 }
 
+void print_help(int argc, char**argv){
+  std::cout<<argv[0]<<" <command>"<<std::endl;
+
+}
+
 int main(int argc, char** argv){
-  return execopt(argc,argv)!=SCIP_OKAY ? 1:0;
+  if (argc>2 && strcmp(argv[1],"fill")==0){
+    return execopt(argc-2,&argv[2])!=SCIP_OKAY ? 1:0;
+  }
+  print_help(argc,argv);
+  return 1;
 }

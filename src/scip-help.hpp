@@ -4,39 +4,36 @@
 #include <scip/scip.h>
 #include <scip/scipdefplugins.h>
 
-SCIP* g = NULL;
-std::vector<SCIP_VAR*> vars;
-std::vector<SCIP_EXPR*> ex_vars;
-
 struct SCIPLOCK{
-  SCIPLOCK(){}
+  SCIPLOCK(SCIP** g):g_(g){}
   ~SCIPLOCK(){
-    for (auto &ptr: ex_vars){
-      SCIPreleaseExpr(g,&ptr);
-    }
-    for (auto &ptr: vars){
-      SCIPreleaseVar(g,&ptr);
-    }
-    if(g){SCIPfree(&g);}
+    if(g_){SCIPfree(g_);}
   }
+  SCIP** g_;
 };
 
-struct sCONS{
-  sCONS(SCIP*g):g_(g){};
-  ~sCONS(){SCIPreleaseCons(g_,&p_);}
-  operator SCIP_CONS*(){ return p_;}
-  operator SCIP_CONS**(){ return &p_;}
-  SCIP_CONS* p_;
-  SCIP*      g_;
+struct EXPRDel{
+  EXPRDel(SCIP*g, SCIP_EXPR**v):g_(g),v_(v)
+  {};
+  ~EXPRDel(){SCIPreleaseExpr(g_,v_);}
+  SCIP* g_;
+  SCIP_EXPR** v_;
 };
 
-struct sEXPR{
-  sEXPR(SCIP*g):g_(g){};
-  ~sEXPR(){SCIPreleaseExpr(g_,&p_);}
-  operator SCIP_EXPR*(){ return p_;}
-  operator SCIP_EXPR**(){ return &p_;}
-  SCIP_EXPR* p_;
-  SCIP*      g_;
+struct VARDel{
+  VARDel(SCIP*g, SCIP_VAR**v):g_(g),v_(v)
+  {};
+  ~VARDel(){SCIPreleaseVar(g_,v_);}
+  SCIP* g_;
+  SCIP_VAR** v_;
+};
+
+struct CONSDel{
+  CONSDel(SCIP*g, SCIP_CONS**v):g_(g),v_(v)
+  {};
+  ~CONSDel(){SCIPreleaseCons(g_,v_);}
+  SCIP* g_;
+  SCIP_CONS** v_;
 };
 
 #endif
