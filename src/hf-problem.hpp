@@ -401,10 +401,9 @@ int solve(
   {
     SCIPinfoMessage(g, NULL, "\nSolution:\n");
     auto sol = SCIPgetBestSol(g);
-    //SCIP_CALL( SCIPprintSol(g, sol, NULL, FALSE) );
+    SCIP_CALL( SCIPprintSol(g, sol, NULL, FALSE) );
     for (int i=0;i<N;i++){
-      std::cout<<mods[i].name<<":"<<SCIPgetSolVal(g,sol,vars[i])<<std::endl;
-      out_counts[i]=(size_t) SCIPgetSolVal;
+      out_counts[i]=(size_t) SCIPgetSolVal(g,sol,vars[i]);
     }
   }
 
