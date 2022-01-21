@@ -9,16 +9,18 @@ namespace module_helpers{
   static std::optional<module> get_hull(const double sqs,const module::mounting mount)
   {
     switch(mount){
-      case module::LARGE:{ return by_name("largehull"); }
+      case module::LARGE:{ return by_name("hull_4x4"); }
       case module::EXTERIOR:{ return {}; }
-      case module::RUNWAY:{ return by_name("FlightDeck"); }
+      case module::RUNWAY:{ return by_name("flight_deck"); }
       case module::SMALL:{ 
                            if (sqs==2.0){
-                             return by_name("2x1hull");
+                             return by_name("hull_2x1");
                            } else if (sqs==1.0){
-                             return by_name("smallhull");
+                             return by_name("hull_1x1");
+                           } else if (sqs==4.0){
+                             return by_name("hull_2x2");
                            } else {
-                             return by_name("hull");
+                             return {};
                            }
                          }
     };

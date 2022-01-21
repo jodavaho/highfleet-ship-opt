@@ -9,6 +9,7 @@
 #include "modules.hpp"
 #include "opts.hpp"
 #include "hf-problem.hpp"
+#include "read-problem.hpp"
 
 void output_sol(std::vector<size_t> counts, std::vector<module> modules){
   size_t N = modules.size();
@@ -54,8 +55,14 @@ void print_help(int argc, char**argv){
 }
 
 int main(int argc, char** argv){
+  if (argc>1 && strcmp(argv[1],"print-modules")==0){
+    for (auto m: get_all_modules()){
+      std::cout<<m<<std::endl;
+    }
+    return 0;
+  }
   if (argc>2 && strcmp(argv[1],"fill")==0){
-    return execopt(argc-2,&argv[2])!=SCIP_OKAY ? 1:0;
+    return execopt(argc-2,&argv[2]);
   }
   print_help(argc,argv);
   return 1;
