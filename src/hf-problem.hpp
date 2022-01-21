@@ -19,7 +19,24 @@ struct Bounds{
   double min_crew_ratio=1.0;
 };
 
-int solve(
+enum SOLVECODE{
+  OK=0,
+  ERR_INFEASIBLE,
+  ERR_SCIP
+};
+
+#define SCIP_CHK(x)   do                                                                                     \
+                       {                                                                                      \
+                          SCIP_RETCODE _restat_; /*lint -e{506,774}*/                                         \
+                          if( (_restat_ = (x)) != SCIP_OKAY )                                                 \
+                          {                                                                                   \
+                             SCIPerrorMessage("Error <%d> in function call\n", _restat_);                     \
+                             return ERR_SCIP;                                                                 \
+                           }                                                                                  \
+                       }                                                                                      \
+                       while( FALSE )
+
+SOLVECODE solve(
     std::vector<size_t> &out_counts,
     const std::vector<module> &mods,
     const Bounds bounds=Bounds(),
@@ -29,13 +46,13 @@ int solve(
 {
 
   SCIP* g; 
-  SCIP_CALL( SCIPcreate(&g) );
-  SCIP_CALL( SCIPcreateProbBasic(g, "Highfleet_Component_Selection"));
-  SCIP_CALL( SCIPincludeDefaultPlugins(g));
-  SCIP_CALL( SCIPsetObjsense(g, SCIP_OBJSENSE_MINIMIZE));
-  SCIP_CALL( SCIPsetRealParam(g, "limits/gap", 0.01) );
+  SCIP_CHK( SCIPcreate(&g) );
+  SCIP_CHK( SCIPcreateProbBasic(g, "Highfleet_Component_Selection"));
+  SCIP_CHK( SCIPincludeDefaultPlugins(g));
+  SCIP_CHK( SCIPsetObjsense(g, SCIP_OBJSENSE_MINIMIZE));
+  SCIP_CHK( SCIPsetRealParam(g, "limits/gap", 0.01) );
   size_t N = mods.size();
-  out_counts.reserve(N);
+  out_counts.resize(N);
   std::vector<SCIP_VAR*> vars(N);
   std::vector<SCIP_EXPR*> ex_vars(N);
   std::vector<SCIP_EXPR**> other_expr;
@@ -67,11 +84,11 @@ int solve(
     size_t max = mod_maximums[m.name];
     assert(min>=0);
     assert(max<=100);
-    SCIP_CALL ( SCIPcreateVarBasic(g,varp, nam.c_str(), min, max, m.cost, SCIP_VARTYPE_INTEGER) ) ;
-    SCIP_CALL ( SCIPaddVar(g,*varp) );
+    SCIP_CHK ( SCIPcreateVarBasic(g,varp, nam.c_str(), min, max, m.cost, SCIP_VARTYPE_INTEGER) ) ;
+    SCIP_CHK ( SCIPaddVar(g,*varp) );
     auto ex_varp = &ex_vars[i];
     //create xprvar for count
-    SCIP_CALL ( SCIPcreateExprVar(g,ex_varp,*varp,NULL,NULL) );
+    SCIP_CHK ( SCIPcreateExprVar(g,ex_varp,*varp,NULL,NULL) );
   }
 
   //create the sum_of(resource) for each resource
@@ -82,7 +99,7 @@ int solve(
     for (size_t i=0;i<N;i++){
       vals[i] = mods[i].fuel_cap;
     }
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_fuel_cap,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
+    SCIP_CHK ( SCIPcreateExprSum(g,&sum_fuel_cap,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
   }
 
   SCIP_EXPR *sum_fuel_rate=nullptr;
@@ -93,7 +110,7 @@ int solve(
       vals[i] = std::fabs(mods[i].fuel_rate);
     }
     SCIP_EXPR * terms[1];
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_fuel_rate,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
+    SCIP_CHK ( SCIPcreateExprSum(g,&sum_fuel_rate,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
   }
 
 
@@ -113,8 +130,8 @@ int solve(
         coefficients_consumers[i] = std::fabs(mods[i].energy);
       }
     }
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_power_production,N,ex_vars.data(),coefficients_producers.data(),0.0,NULL,NULL));
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_power_consumption,N,ex_vars.data(),coefficients_consumers.data(),0.0,NULL,NULL));
+    SCIP_CHK ( SCIPcreateExprSum(g,&sum_power_production,N,ex_vars.data(),coefficients_producers.data(),0.0,NULL,NULL));
+    SCIP_CHK ( SCIPcreateExprSum(g,&sum_power_consumption,N,ex_vars.data(),coefficients_consumers.data(),0.0,NULL,NULL));
   }
 
   SCIP_EXPR *sum_thrust_mn=nullptr;
@@ -126,10 +143,10 @@ int solve(
     for (size_t i=0;i<N;i++){
       vals[i] = std::fabs(mods[i].thrust);
     }
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_thrust_mn,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
+    SCIP_CHK ( SCIPcreateExprSum(g,&sum_thrust_mn,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
     SCIP_EXPR* terms[1];
     terms[0]=sum_thrust_mn;
-    SCIP_CALL ( SCIPcreateExprProduct(g,&sum_thrust_mtf,1,terms,101.97,NULL,NULL));
+    SCIP_CHK ( SCIPcreateExprProduct(g,&sum_thrust_mtf,1,terms,101.97,NULL,NULL));
   }
    
   SCIP_EXPR *sum_cost=nullptr;
@@ -139,7 +156,7 @@ int solve(
     for (size_t i=0;i<N;i++){
       vals[i] = mods[i].cost;
     }
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_cost,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
+    SCIP_CHK ( SCIPcreateExprSum(g,&sum_cost,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
   }
 
   SCIP_EXPR *sum_ammo=nullptr;
@@ -149,7 +166,7 @@ int solve(
     for (size_t i=0;i<N;i++){
       vals[i] = mods[i].ammo;
     }
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_ammo,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
+    SCIP_CHK ( SCIPcreateExprSum(g,&sum_ammo,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
   }
 
   SCIP_EXPR *sum_weight=nullptr;
@@ -159,7 +176,7 @@ int solve(
     for (size_t i=0;i<N;i++){
       vals[i] = mods[i].weight;
     }
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_weight,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
+    SCIP_CHK ( SCIPcreateExprSum(g,&sum_weight,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
   }
 
   SCIP_EXPR *sum_crew_have=nullptr;
@@ -177,8 +194,8 @@ int solve(
         coefficients_crew_need[i] = std::fabs(crewr);
       }
     }
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_crew_have,N,ex_vars.data(),coefficients_crew_have.data(),0.0,NULL,NULL));
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_crew_need,N,ex_vars.data(),coefficients_crew_need.data(),0.0,NULL,NULL));
+    SCIP_CHK ( SCIPcreateExprSum(g,&sum_crew_have,N,ex_vars.data(),coefficients_crew_have.data(),0.0,NULL,NULL));
+    SCIP_CHK ( SCIPcreateExprSum(g,&sum_crew_need,N,ex_vars.data(),coefficients_crew_need.data(),0.0,NULL,NULL));
   }
   
   SCIP_EXPR *sum_firepower=nullptr;
@@ -188,7 +205,7 @@ int solve(
     for (size_t i=0;i<N;i++){
       vals[i] = mods[i].firepower;
     }
-    SCIP_CALL ( SCIPcreateExprSum(g,&sum_firepower,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
+    SCIP_CHK ( SCIPcreateExprSum(g,&sum_firepower,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
   }
 
   //////////////////// Design constraints
@@ -235,25 +252,25 @@ int solve(
       }
     }
 
-    SCIP_CALL( SCIPcreateExprSum(g,&small_needs, N, ex_vars.data(), small_requires.data(), 0.0, NULL, NULL));
-    SCIP_CALL( SCIPcreateExprSum(g,&large_needs, N, ex_vars.data(), large_requires.data(), 0.0, NULL, NULL));
-    SCIP_CALL( SCIPcreateExprSum(g,&small_has, N, ex_vars.data(), small_provides.data(), 0.0, NULL, NULL));
-    SCIP_CALL( SCIPcreateExprSum(g,&large_has, N, ex_vars.data(), large_provides.data(), 0.0, NULL, NULL));
+    SCIP_CHK( SCIPcreateExprSum(g,&small_needs, N, ex_vars.data(), small_requires.data(), 0.0, NULL, NULL));
+    SCIP_CHK( SCIPcreateExprSum(g,&large_needs, N, ex_vars.data(), large_requires.data(), 0.0, NULL, NULL));
+    SCIP_CHK( SCIPcreateExprSum(g,&small_has, N, ex_vars.data(), small_provides.data(), 0.0, NULL, NULL));
+    SCIP_CHK( SCIPcreateExprSum(g,&large_has, N, ex_vars.data(), large_provides.data(), 0.0, NULL, NULL));
 
     terms[0]=small_has;
     terms[1]=small_needs;
     coefficients[0]=1.0;
     coefficients[1]=-1.0;
-    SCIP_CALL( SCIPcreateExprSum(g,&small_diff, 2, terms,coefficients,0.0,NULL,NULL));
-    SCIP_CALL( SCIPcreateConsBasicNonlinear(g,&small_hull_included, "Small Hull Included",small_diff,0.0,0.0));
+    SCIP_CHK( SCIPcreateExprSum(g,&small_diff, 2, terms,coefficients,0.0,NULL,NULL));
+    SCIP_CHK( SCIPcreateConsBasicNonlinear(g,&small_hull_included, "Small Hull Included",small_diff,0.0,0.0));
     terms[0]=large_has;
     terms[1]=large_needs;
     coefficients[0]=1.0;
     coefficients[1]=-1.0;
-    SCIP_CALL( SCIPcreateExprSum(g,&large_diff, 2, terms,coefficients,0.0,NULL,NULL));
-    SCIP_CALL( SCIPcreateConsBasicNonlinear(g,&large_hull_included, "Large Hull Included",large_diff,0.0,0.0));
-    SCIP_CALL( SCIPaddCons(g, small_hull_included) );
-    SCIP_CALL( SCIPaddCons(g, large_hull_included) );
+    SCIP_CHK( SCIPcreateExprSum(g,&large_diff, 2, terms,coefficients,0.0,NULL,NULL));
+    SCIP_CHK( SCIPcreateConsBasicNonlinear(g,&large_hull_included, "Large Hull Included",large_diff,0.0,0.0));
+    SCIP_CHK( SCIPaddCons(g, small_hull_included) );
+    SCIP_CHK( SCIPaddCons(g, large_hull_included) );
 
 
     SCIPreleaseExpr(g,&small_needs);
@@ -288,15 +305,15 @@ int solve(
     //
     coefficients[0]=1.0;
     coefficients[1]=- twr_lb_val;
-    SCIP_CALL ( SCIPcreateExprSum(g,&twr_lhs_lb,2,terms,coefficients,0.0,NULL,NULL));
-    SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&twr_lb_cons, "TWR LB" ,twr_lhs_lb, 0.0, SCIPinfinity(g)));
-    SCIP_CALL ( SCIPaddCons(g,twr_lb_cons));
+    SCIP_CHK ( SCIPcreateExprSum(g,&twr_lhs_lb,2,terms,coefficients,0.0,NULL,NULL));
+    SCIP_CHK ( SCIPcreateConsBasicNonlinear(g,&twr_lb_cons, "TWR LB" ,twr_lhs_lb, 0.0, SCIPinfinity(g)));
+    SCIP_CHK ( SCIPaddCons(g,twr_lb_cons));
     // opposite sign (>0)
     coefficients[0]=-1.0;
     coefficients[1]= twr_ub_val;
-    SCIP_CALL ( SCIPcreateExprSum(g,&twr_lhs_ub,2,terms,coefficients,0.0,NULL,NULL));
-    SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&twr_ub_cons, "TWR UB" ,twr_lhs_ub, 0.0, SCIPinfinity(g)));
-    SCIP_CALL ( SCIPaddCons(g,twr_ub_cons));
+    SCIP_CHK ( SCIPcreateExprSum(g,&twr_lhs_ub,2,terms,coefficients,0.0,NULL,NULL));
+    SCIP_CHK ( SCIPcreateConsBasicNonlinear(g,&twr_ub_cons, "TWR UB" ,twr_lhs_ub, 0.0, SCIPinfinity(g)));
+    SCIP_CHK ( SCIPaddCons(g,twr_ub_cons));
 
     SCIPreleaseExpr(g, &twr_lhs_lb);
     SCIPreleaseExpr(g, &twr_lhs_ub);
@@ -320,9 +337,9 @@ int solve(
     //
     coefficients[0]=1.0;
     coefficients[1]= - bounds.min_pwr_ratio;
-    SCIP_CALL ( SCIPcreateExprSum(g,&power_lhs_lb,2,terms,coefficients,0.0,NULL,NULL));
-    SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&power_lb_cons, "Power Ratio LB" ,power_lhs_lb, 0.0, SCIPinfinity(g)));
-    SCIP_CALL ( SCIPaddCons(g,power_lb_cons));
+    SCIP_CHK ( SCIPcreateExprSum(g,&power_lhs_lb,2,terms,coefficients,0.0,NULL,NULL));
+    SCIP_CHK ( SCIPcreateConsBasicNonlinear(g,&power_lb_cons, "Power Ratio LB" ,power_lhs_lb, 0.0, SCIPinfinity(g)));
+    SCIP_CHK ( SCIPaddCons(g,power_lb_cons));
 
     SCIPreleaseCons(g,&power_lb_cons);
     SCIPreleaseExpr(g,&power_lhs_lb);
@@ -348,12 +365,12 @@ int solve(
     SCIP_EXPR* TxFC;
     prod_terms[0]=sum_thrust_mtf;
     prod_terms[1]=sum_fuel_cap;
-    SCIP_CALL ( SCIPcreateExprProduct(g,&TxFC,2,prod_terms,89.9,NULL,NULL));
+    SCIP_CHK ( SCIPcreateExprProduct(g,&TxFC,2,prod_terms,89.9,NULL,NULL));
     //
     SCIP_EXPR* WxFR;
     prod_terms[0]=sum_weight;
     prod_terms[1]=sum_fuel_rate;
-    SCIP_CALL ( SCIPcreateExprProduct(g,&WxFR,2,prod_terms,1.0,NULL,NULL));
+    SCIP_CHK ( SCIPcreateExprProduct(g,&WxFR,2,prod_terms,1.0,NULL,NULL));
     //
     SCIP_EXPR* sum_terms[2];
     sum_terms[0]=TxFC;
@@ -362,13 +379,13 @@ int solve(
     coefficients[0]=1.0;
     coefficients[1]= - bounds.range[0];
 
-    SCIP_CALL ( SCIPcreateExprSum(g,&range_lhs_lb,2,sum_terms,coefficients,0.0,NULL,NULL));
-    SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&range_lb_cons, "Range LB" ,range_lhs_lb, 0.0, SCIPinfinity(g)));
-    SCIP_CALL ( SCIPaddCons(g,range_lb_cons));
-    SCIP_CALL ( SCIPreleaseCons(g,&range_lb_cons));
-    SCIP_CALL ( SCIPreleaseExpr(g,&range_lhs_lb));
-    SCIP_CALL ( SCIPreleaseExpr(g,&WxFR));
-    SCIP_CALL ( SCIPreleaseExpr(g,&TxFC));
+    SCIP_CHK ( SCIPcreateExprSum(g,&range_lhs_lb,2,sum_terms,coefficients,0.0,NULL,NULL));
+    SCIP_CHK ( SCIPcreateConsBasicNonlinear(g,&range_lb_cons, "Range LB" ,range_lhs_lb, 0.0, SCIPinfinity(g)));
+    SCIP_CHK ( SCIPaddCons(g,range_lb_cons));
+    SCIP_CHK ( SCIPreleaseCons(g,&range_lb_cons));
+    SCIP_CHK ( SCIPreleaseExpr(g,&range_lhs_lb));
+    SCIP_CHK ( SCIPreleaseExpr(g,&WxFR));
+    SCIP_CHK ( SCIPreleaseExpr(g,&TxFC));
   }
 
 
@@ -385,25 +402,25 @@ int solve(
    * OK
    */
   SCIP_CONS* maximum_cost_cons;
-  SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&maximum_cost_cons, "Maximum_cost" ,sum_cost, bounds.cost[0], bounds.cost[1]));
-  SCIP_CALL ( SCIPaddCons(g,maximum_cost_cons) );
-  SCIP_CALL ( SCIPreleaseCons(g,&maximum_cost_cons) );
+  SCIP_CHK ( SCIPcreateConsBasicNonlinear(g,&maximum_cost_cons, "Maximum_cost" ,sum_cost, bounds.cost[0], bounds.cost[1]));
+  SCIP_CHK ( SCIPaddCons(g,maximum_cost_cons) );
+  SCIP_CHK ( SCIPreleaseCons(g,&maximum_cost_cons) );
 
   /*
    * Ammo balanced
   */
   SCIP_CONS* ammo_balanced_cons;
-  SCIP_CALL( SCIPcreateConsBasicNonlinear(g,&ammo_balanced_cons,"Ammo Balanced", sum_ammo, 0, SCIPinfinity(g)) );
-  SCIP_CALL( SCIPaddCons(g,ammo_balanced_cons));
-  SCIP_CALL( SCIPreleaseCons(g, &ammo_balanced_cons ));
+  SCIP_CHK( SCIPcreateConsBasicNonlinear(g,&ammo_balanced_cons,"Ammo Balanced", sum_ammo, 0, SCIPinfinity(g)) );
+  SCIP_CHK( SCIPaddCons(g,ammo_balanced_cons));
+  SCIP_CHK( SCIPreleaseCons(g, &ammo_balanced_cons ));
 
   /*
    * Maximum weight
   */
   SCIP_CONS* maximum_weight_cons;
-  SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&maximum_weight_cons, "Maximum_Weight", sum_weight,bounds.weight[0], bounds.weight[1]) );
-  SCIP_CALL ( SCIPaddCons(g,maximum_weight_cons));
-  SCIP_CALL ( SCIPreleaseCons(g, &maximum_weight_cons));
+  SCIP_CHK ( SCIPcreateConsBasicNonlinear(g,&maximum_weight_cons, "Maximum_Weight", sum_weight,bounds.weight[0], bounds.weight[1]) );
+  SCIP_CHK ( SCIPaddCons(g,maximum_weight_cons));
+  SCIP_CHK ( SCIPreleaseCons(g, &maximum_weight_cons));
 
   /*
    * Set power production / use constraints as
@@ -422,23 +439,25 @@ int solve(
     //
     coefficients[0]=1.0;
     coefficients[1]= - bounds.min_crew_ratio;
-    SCIP_CALL ( SCIPcreateExprSum(g,&crew_lhs_lb,2,terms,coefficients,0.0,NULL,NULL));
-    SCIP_CALL ( SCIPcreateConsBasicNonlinear(g,&crew_ratio, "Crew Ratio" ,crew_lhs_lb, 0.0, SCIPinfinity(g)));
-    SCIP_CALL ( SCIPaddCons(g,crew_ratio));
+    SCIP_CHK ( SCIPcreateExprSum(g,&crew_lhs_lb,2,terms,coefficients,0.0,NULL,NULL));
+    SCIP_CHK ( SCIPcreateConsBasicNonlinear(g,&crew_ratio, "Crew Ratio" ,crew_lhs_lb, 0.0, SCIPinfinity(g)));
+    SCIP_CHK ( SCIPaddCons(g,crew_ratio));
   }
  
-  SCIP_CALL( SCIPprintOrigProblem(g, NULL, "cip", FALSE) ); 
+  SCIP_CHK( SCIPprintOrigProblem(g, NULL, "cip", FALSE) ); 
   //fucking compiled without support:
-  //SCIP_CALL ( SCIPsolveParallel(g) );
-  SCIP_CALL ( SCIPsolve(g) );
+  //SCIP_CHK ( SCIPsolveParallel(g) );
+  SCIP_CHK ( SCIPsolve(g) );
   if( SCIPgetNSols(g) > 0 )
   {
     SCIPinfoMessage(g, NULL, "\nSolution:\n");
     auto sol = SCIPgetBestSol(g);
-    SCIP_CALL( SCIPprintSol(g, sol, NULL, FALSE) );
+    SCIP_CHK( SCIPprintSol(g, sol, NULL, FALSE) );
     for (int i=0;i<N;i++){
       out_counts[i]=(size_t) std::round(SCIPgetSolVal(g,sol,vars[i]));
     }
+  } else {
+    return ERR_INFEASIBLE;
   }
 
   for (auto conspp: other_cons){
@@ -453,7 +472,7 @@ int solve(
   }
   SCIPfree(&g);
 
-  return SCIP_OKAY;
+  return OK;
 }
 
 #endif

@@ -10,12 +10,21 @@
 #include "opts.hpp"
 #include "hf-problem.hpp"
 
+void output_sol(std::vector<size_t> counts, std::vector<module> modules){
+  size_t N = modules.size();
+  assert(N==counts.size());
+  for (size_t i=0;i<N;i++){
+    if (counts[i]>0){
+      std::cout<<counts[i]<<" of "<<modules[i]<<std::endl;
+    }
+  }
+}
 int execopt(int argc, char** argv){
-  std::vector<size_t> counts;
   std::vector<module> available_mods;
   for (const auto m: get_all_modules()){
     available_mods.push_back(m);
   }
+  std::vector<size_t> counts;
   Bounds b;
   b.twr[1]=5;
   b.twr[0]=1;
@@ -31,7 +40,12 @@ int execopt(int argc, char** argv){
   }
   SolveOptions opts;
   opts.include_hull=true;
-  return solve(counts, available_mods, b, req, opts );
+  SOLVECODE retcode = solve(counts, available_mods, b, req, opts );
+  switch (retcode){
+    case OK: {output_sol(counts, available_mods);return 0;}
+    case ERR_INFEASIBLE:{ std::cout<<"Infeasible"<<std::endl; return 1;}
+  }
+  return 0;
 }
 
 void print_help(int argc, char**argv){
