@@ -1,4 +1,6 @@
 #include "hf-problem.hpp"
+#include <scip/scip.h>
+#include <scip/scipdefplugins.h>
 
 #define SCIP_CHK(x)   do                                                                                     \
                        {                                                                                      \
@@ -6,7 +8,7 @@
                           if( (_restat_ = (x)) != SCIP_OKAY )                                                 \
                           {                                                                                   \
                              SCIPerrorMessage("Error <%d> in function call\n", _restat_);                     \
-                             return ERR_SCIP;                                                                 \
+                             return ERR_INTERNAL;                                                                 \
                            }                                                                                  \
                        }                                                                                      \
                        while( FALSE )

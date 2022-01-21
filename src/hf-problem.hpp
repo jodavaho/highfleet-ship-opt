@@ -1,7 +1,6 @@
 #ifndef hf_problem_hpp
 #define hf_problem_hpp
 
-#include "scip-help.hpp"
 #include <unordered_map>
 #include <sstream>
 #include "modules.hpp"
@@ -24,7 +23,7 @@ struct Bounds{
 enum SOLVECODE{
   OK=0,
   ERR_INFEASIBLE,
-  ERR_SCIP
+  ERR_INTERNAL
 };
 
 SOLVECODE solve(

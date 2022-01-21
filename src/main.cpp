@@ -10,6 +10,8 @@
 #include "opts.hpp"
 #include "hf-problem.hpp"
 #include "read-problem.hpp"
+#include <cassert>
+#include <cstring>
 
 void output_sol(std::vector<size_t> counts, std::vector<module> modules){
   size_t N = modules.size();
