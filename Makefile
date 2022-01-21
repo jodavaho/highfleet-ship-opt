@@ -1,5 +1,5 @@
 LIBA=-lscip
-CXXFLAGS=-g -std=c++2a
+CXXFLAGS=-g -std=c++2a -I/usr/include/python3.8
 
 SRCD := src
 OBJD := build

@@ -34,5 +34,4 @@ SOLVECODE solve(
     const SolveOptions opts={}
     );
 
-
 #endif
