@@ -1,7 +1,7 @@
 #ifndef hf_py_h
 #define hf_py_h
 
-#include "hf-problem.hpp"
+#include "../lib/hf-problem.hpp"
 #include <python3.8/Python.h>
 
 #ifdef __cplusplus
