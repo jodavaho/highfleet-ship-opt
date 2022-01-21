@@ -35,6 +35,7 @@ int solve(
   SCIP_CALL( SCIPsetObjsense(g, SCIP_OBJSENSE_MINIMIZE));
   SCIP_CALL( SCIPsetRealParam(g, "limits/gap", 0.01) );
   size_t N = mods.size();
+  out_counts.reserve(N);
   vars.reserve(N);
   ex_vars.reserve(N);
 
@@ -69,7 +70,6 @@ int solve(
     auto ex_varp = &ex_vars[i];
     //create xprvar for count
     SCIP_CALL ( SCIPcreateExprVar(g,ex_varp,*varp,NULL,NULL) );
-    //std::cout<<"Created: "<<nam<<std::endl;
   }
 
   //create the sum_of(resource) for each resource
@@ -208,6 +208,7 @@ int solve(
         case module::SMALL:{ small_requires[i] = mods[i].sq; break; }
         case module::LARGE: { large_requires[i] = 1; }
         case module::EXTERIOR:{ break; }
+        case module::RUNWAY:{ break;}//this is TODO
         case module::HULL: { 
                              if (mods[i].sq==16){
                                large_provides[i]=1;
@@ -399,7 +400,12 @@ int solve(
   if( SCIPgetNSols(g) > 0 )
   {
     SCIPinfoMessage(g, NULL, "\nSolution:\n");
-    SCIP_CALL( SCIPprintSol(g, SCIPgetBestSol(g), NULL, FALSE) );
+    auto sol = SCIPgetBestSol(g);
+    //SCIP_CALL( SCIPprintSol(g, sol, NULL, FALSE) );
+    for (int i=0;i<N;i++){
+      std::cout<<mods[i].name<<":"<<SCIPgetSolVal(g,sol,vars[i])<<std::endl;
+      out_counts[i]=(size_t) SCIPgetSolVal;
+    }
   }
 
   return SCIP_OKAY;

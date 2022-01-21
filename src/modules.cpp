@@ -44,7 +44,7 @@ std::optional<module> module::get_hull() const
 
 ModuleSet create_all_mods(){
   ModuleSet ret;
-  ret.insert({"bridge",              2,  2,  4,   25,     100,   0,     0,     60,    0,    0,     0,     0,   0,   0,    module::SMALL});
+  ret.insert({"bridge",              2,  2,  4,   25,     100,   0,     0,     60,    0,    0,     0,     0,   0,   0,    module::EXTERIOR});
   ret.insert({"hull",                2,  2,  4,   25.8,   100,  20,     0,      0,    0,    0,     0,     0,   0,   0,    module::HULL});
   ret.insert({"hulltriangle",        2,  2,  4,   25.8,   100,  20,     0,      0,    0,    0,     0,     0,   0,   0,    module::HULL});
   ret.insert({"hullinvertedcorner",  2,  2,  4,   25.8,   100,  20,     0,      0,    0,    0,     0,     0,   0,   0,    module::HULL});
@@ -86,8 +86,8 @@ ModuleSet create_all_mods(){
   ret.insert({"FAB_1000",            2,  1,  2,   37.3,   100,  200,    0,      0,    0,    0,     0,     0,   1,   0,    module::SMALL});
   ret.insert({"MapMissile",          2,  4,  8,   261.1,  20,   1500,   0,      -5,   0,    0,     0,     0,   0,   0,    module::SMALL});
   ret.insert({"MapMissilenuclear",   2,  4,  8,   261.1,  20,   4000,   0,      -5,   0,    0,     0,     0,   0,   0,    module::SMALL});
-  ret.insert({"LA_29",               3,  1,  3,   39.1,   100,  2000,   0,      -15,  0,    0,     0,     -1,  0,   0,    module::SMALL});
-  ret.insert({"T_7",                 4,  2,  8,   107.8,  100,  2500,   0,      -15,  0,    0,     0,     -1,  0,   0,    module::SMALL});
+  ret.insert({"LA_29",               3,  1,  3,   39.1,   100,  2000,   0,      -15,  0,    0,     0,     -1,  0,   0,    module::RUNWAY});
+  ret.insert({"T_7",                 4,  2,  8,   107.8,  100,  2500,   0,      -15,  0,    0,     0,     -1,  0,   0,    module::RUNWAY});
   ret.insert({"MR_700",              4,  3,  12,  197.8,  100,  10000,  -6,     -2,   0,    0,     0,     0,   0,   0,    module::EXTERIOR});
   ret.insert({"MR_500",              1,  2,  2,   14.4,   100,  4000,   -2,     -4,   0,    0,     0,     0,   0,   0,    module::EXTERIOR});
   ret.insert({"MP_404",              2,  3,  6,   44.2,   100,  4000,   -2,     -1,   0,    0,     0,     0,   0,   0,    module::EXTERIOR});
