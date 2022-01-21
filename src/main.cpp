@@ -6,10 +6,9 @@
 #include <vector>
 #include <sstream>
 
-#include "modules.hpp"
+#include "lib/modules.hpp"
 #include "opts.hpp"
-#include "hf-problem.hpp"
-#include "read-problem.hpp"
+#include "lib/hf-problem.hpp"
 #include <cassert>
 #include <cstring>
 

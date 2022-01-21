@@ -1,4 +1,5 @@
 #include "hf-problem.hpp"
+
 #include <scip/scip.h>
 #include <scip/scipdefplugins.h>
 

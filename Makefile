@@ -1,5 +1,6 @@
-LIBA=-lscip
-CXXFLAGS=-g -std=c++2a -I/usr/include/python3.8
+LIBA:=-lscip
+CXXFLAGS:= -std=c++2a 
+PYFLAGS:= -I/usr/include/python3.8
 
 SRCD := src
 OBJD := build
@@ -7,18 +8,14 @@ LIBSRC  := $(wildcard $(SRCD)/lib/*.cpp)
 LIBOBJ  := $(patsubst $(SRCD)/lib/%.cpp,$(OBJD)/%.o,$(LIBSRC))
 MAIN := src/main.cpp
 
-build/main: build/hf.so $(MAIN) $(OBJD)
-	g++ $(CXXFLAGS) -o $@ $^ $(LIBA) 
+build/hftop: src/main.cpp build/libhf.so
+	g++ $(CXXFLAGS) $^ -o $@ $(LIBA) -Lbuild -lhf
 
-build/hf.so: $(LIBOBJ) 
-	g++ -shared -Wl,-soname,libhf.so -o $@ $^ -lc
+build/libhf.so: $(LIBOBJ)
+	g++ -shared -Wl,-soname,$@ -o $@ $(LIBOBJ)  -lc -lscip
 
-$(LIBOBJ): $(LIBSRC)
-	$(CXX) $(CXXFLAGS) -fPIC -c -o $@ $<
-
-$(OBJD):
-	mkdir -p build/lib
-	mkdir -p build/bin
+$(OBJD)/%.o: $(SRCD)/lib/%.cpp 
+	g++ -fPIC $(CXXFLAGS)  -c $< -o $@
 
 clean:
 	rm -rf build/
