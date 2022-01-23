@@ -2,4 +2,12 @@
 
 - SCIP is at: `https://www.scipopt.org/download.php?fname=SCIPOptSuite-8.0.0-Linux-ubuntu.deb`
 - installed like this: `sudo apt install ./SCIPOptSuite-8.0.0-Linux-ubuntu.deb  --fix-broken`
+
+# For python wrappers (make python)
+
 - libpython3.8-dev
+
+# For windows (make windows)
+
+- g++-mingw*
+
