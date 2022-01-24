@@ -5,6 +5,7 @@ PYFLAGS:= -I/usr/include/python3.8
 
 CXX := $(TARGET)-g++
 CC  := $(TARGET)-gcc
+
 SRCD := src
 OBJD := build/$(TARGET)
 PYOBJD := pybuild/$(TARGET)
