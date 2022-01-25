@@ -28,10 +28,10 @@ int execopt(int argc, char** argv){
   }
   std::vector<size_t> counts;
   Bounds b;
-  b.twr[1]=5;
-  b.twr[0]=1;
-  b.range[0]=1000;
-  b.speed[0]=400;
+  b.twr_max=5;
+  b.twr_min=1;
+  b.range_min=1000;
+  b.spd_min=400;
   std::vector<module> req;
 
   for (int argi=0;argi<argc;argi++){
@@ -63,7 +63,9 @@ int main(int argc, char** argv){
     return 0;
   }
   if (argc>2 && strcmp(argv[1],"fill")==0){
-    return execopt(argc-2,&argv[2]);
+    for (int i=0;i<10;i++){
+      return execopt(argc-2,&argv[2]);
+    }
   }
   print_help(argc,argv);
   return 1;

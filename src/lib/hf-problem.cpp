@@ -266,8 +266,8 @@ SOLVECODE solve(
   /* 
    * Set TWR Constraints, and make them consistent with speed constraints
   */
-  double twr_lb_val = std::max(bounds.speed[0]/89.9, bounds.twr[0]);//TODO: missing constant
-  double twr_ub_val = std::min(bounds.speed[1]/89.9, bounds.twr[1]);
+  double twr_lb_val = std::max(bounds.spd_min/89.9, bounds.twr_min);//TODO: missing constant
+  double twr_ub_val = std::min(bounds.spd_max/89.9, bounds.twr_max);
   SCIP_CONS* twr_lb_cons;
   SCIP_CONS* twr_ub_cons;
   other_cons.push_back(&twr_lb_cons);
@@ -316,7 +316,7 @@ SOLVECODE solve(
     SCIP_Real coefficients[2];
     //
     coefficients[0]=1.0;
-    coefficients[1]= - bounds.min_pwr_ratio;
+    coefficients[1]= - bounds.pwr_ratio_min;
     SCIP_CHK ( SCIPcreateExprSum(g,&power_lhs_lb,2,terms,coefficients,0.0,NULL,NULL));
     SCIP_CHK ( SCIPcreateConsBasicNonlinear(g,&power_lb_cons, "Power Ratio LB" ,power_lhs_lb, 0.0, SCIPinfinity(g)));
     SCIP_CHK ( SCIPaddCons(g,power_lb_cons));
@@ -356,7 +356,7 @@ SOLVECODE solve(
     sum_terms[1]=WxFR;
     SCIP_Real coefficients[2];
     coefficients[0]=1.0;
-    coefficients[1]= - bounds.range[0];
+    coefficients[1]= - bounds.range_min;
 
     SCIP_CHK ( SCIPcreateExprSum(g,&range_lhs_lb,2,sum_terms,coefficients,0.0,NULL,NULL));
     SCIP_CHK ( SCIPcreateConsBasicNonlinear(g,&range_lb_cons, "Range LB" ,range_lhs_lb, 0.0, SCIPinfinity(g)));
@@ -381,7 +381,7 @@ SOLVECODE solve(
    * OK
    */
   SCIP_CONS* maximum_cost_cons;
-  SCIP_CHK ( SCIPcreateConsBasicNonlinear(g,&maximum_cost_cons, "Maximum_cost" ,sum_cost, bounds.cost[0], bounds.cost[1]));
+  SCIP_CHK ( SCIPcreateConsBasicNonlinear(g,&maximum_cost_cons, "Maximum_cost" ,sum_cost, bounds.cost_min, bounds.cost_max));
   SCIP_CHK ( SCIPaddCons(g,maximum_cost_cons) );
   SCIP_CHK ( SCIPreleaseCons(g,&maximum_cost_cons) );
 
@@ -397,7 +397,7 @@ SOLVECODE solve(
    * Maximum weight
   */
   SCIP_CONS* maximum_weight_cons;
-  SCIP_CHK ( SCIPcreateConsBasicNonlinear(g,&maximum_weight_cons, "Maximum_Weight", sum_weight,bounds.weight[0], bounds.weight[1]) );
+  SCIP_CHK ( SCIPcreateConsBasicNonlinear(g,&maximum_weight_cons, "Maximum_Weight", sum_weight,bounds.wt_min, bounds.wt_max) );
   SCIP_CHK ( SCIPaddCons(g,maximum_weight_cons));
   SCIP_CHK ( SCIPreleaseCons(g, &maximum_weight_cons));
 
@@ -417,7 +417,7 @@ SOLVECODE solve(
     SCIP_Real coefficients[2];
     //
     coefficients[0]=1.0;
-    coefficients[1]= - bounds.min_crew_ratio;
+    coefficients[1]= - bounds.crew_ratio_min;
     SCIP_CHK ( SCIPcreateExprSum(g,&crew_lhs_lb,2,terms,coefficients,0.0,NULL,NULL));
     SCIP_CHK ( SCIPcreateConsBasicNonlinear(g,&crew_ratio, "Crew Ratio" ,crew_lhs_lb, 0.0, SCIPinfinity(g)));
     SCIP_CHK ( SCIPaddCons(g,crew_ratio));

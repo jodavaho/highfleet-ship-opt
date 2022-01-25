@@ -1,5 +1,5 @@
 TARGET:=$(shell gcc -dumpmachine)
-LIBA:=-L.dep/$(TARGET)/lib -Lbuild/$(TARGET) -Lbuild/$(TARGET) -lscip
+LIBA:=-L.deps/$(TARGET)/lib -Lbuild/$(TARGET) -Lbuild/$(TARGET) -lscip
 CXXFLAGS:= -std=c++2a -I.dep/$(TARGET)/include
 PYFLAGS:= -I/usr/include/python3.8
 
