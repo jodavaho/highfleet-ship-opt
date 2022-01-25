@@ -40,7 +40,8 @@ $(PYOBJD):
 	mkdir -p pybuild/$(TARGET)
 
 $(SCIPOBJ):
-	@echo "You need to build libscip.a ... see README.md"
+	@echo "You need to build $@ ... see README.md"
+
 clean:
 	rm -rf build/$(TARGET)
 	rm -rf pybuild/$(TARGET)
