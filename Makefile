@@ -18,7 +18,7 @@ MAIN := src/main.cpp
 
 all: $(OBJD) $(PYOBJD) build/$(TARGET)/hftop build/$(TARGET)/libhf.so pybuild/$(TARGET)/libhf-py.so
 
-build/$(TARGET)/hftop: src/main.cpp build/$(TARGET)/libhf.so $(SCIPOBJ)
+build/$(TARGET)/hftop: src/main.cpp src/opts.cpp build/$(TARGET)/libhf.so $(SCIPOBJ)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LIBA) -lhf
 
 build/$(TARGET)/libhf.so: $(LIBOBJ)

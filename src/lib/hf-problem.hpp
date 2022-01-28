@@ -1,8 +1,7 @@
 #ifndef hf_problem_hpp
 #define hf_problem_hpp
 
-#include <unordered_map>
-#include <sstream>
+#include <vector>
 #include "modules.hpp"
 
 struct SolveOptions{
@@ -25,6 +24,8 @@ struct Bounds{
   double pwr_ratio_min=1.0;
   double crew_ratio_min=1.0;
 };
+
+std::ostream& operator<<(std::ostream& os, const Bounds&b);
 
 enum SOLVECODE{
   OK=0,

@@ -1,6 +1,8 @@
 #include "hf-problem.hpp"
 
 #include <scip/scip.h>
+#include <unordered_map>
+#include <sstream>
 #include <scip/scipdefplugins.h>
 
 #define SCIP_CHK(x)   do                                                                                     \
@@ -423,15 +425,15 @@ SOLVECODE solve(
     SCIP_CHK ( SCIPaddCons(g,crew_ratio));
   }
  
-  SCIP_CHK( SCIPprintOrigProblem(g, NULL, "cip", FALSE) ); 
+  //SCIP_CHK( SCIPprintOrigProblem(g, NULL, "cip", FALSE) ); 
   //fucking compiled without support:
   //SCIP_CHK ( SCIPsolveParallel(g) );
   SCIP_CHK ( SCIPsolve(g) );
   if( SCIPgetNSols(g) > 0 )
   {
-    SCIPinfoMessage(g, NULL, "\nSolution:\n");
+    //SCIPinfoMessage(g, NULL, "\nSolution:\n");
     auto sol = SCIPgetBestSol(g);
-    SCIP_CHK( SCIPprintSol(g, sol, NULL, FALSE) );
+    //SCIP_CHK( SCIPprintSol(g, sol, NULL, FALSE) );
     for (int i=0;i<N;i++){
       out_counts[i]=(size_t) std::round(SCIPgetSolVal(g,sol,vars[i]));
     }
@@ -452,4 +454,9 @@ SOLVECODE solve(
   SCIPfree(&g);
 
   return OK;
+}
+
+std::ostream& operator<<(std::ostream& os, const Bounds&b){
+  os<<"Range =["<<b.range_min<<","<<b.range_max<<"]";
+  return os;
 }
