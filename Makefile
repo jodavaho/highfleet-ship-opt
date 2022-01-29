@@ -1,6 +1,6 @@
 TARGET:=$(shell gcc -dumpmachine)
 LIBA:=-L.deps/$(TARGET)/lib -Lbuild/$(TARGET)  -lz -lgmp
-CXXFLAGS:= -std=c++2a -I.deps/$(TARGET)/include -DNO_CONFIG_HEADER
+CXXFLAGS:= -Isrc -std=c++2a -I.deps/$(TARGET)/include -DNO_CONFIG_HEADER
 PYFLAGS:= -I/usr/include/python3.8
 
 CXX := $(TARGET)-g++
