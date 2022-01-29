@@ -2,11 +2,36 @@ from distutils.core import setup, Extension
 import sys
 
 #https://stackoverflow.com/a/49139257
-static_libraries = ['scip','hf']
+static_libraries = [
+        #'scip','scipbase',
+        'hf',
+        #'lpispx2-8.0.0.linux.x86_64.gnu.opt',
+        #'lpispx2',
+        #'lpispx2.linux.x86_64.gnu.opt',
+        #'objscip-8.0.0.linux.x86_64.gnu.opt',
+        #'objscip',
+        #'objscip.linux.x86_64.gnu.opt',
+        #'scip-8.0.0.linux.x86_64.gnu.opt.spx2',
+        #'scip',
+        #'scipbase-8.0.0.linux.x86_64.gnu.opt',
+        #'scipbase',
+        #'scipbase.linux.x86_64.gnu.opt',
+        #'scip.linux.x86_64.gnu.opt.spx2',
+        #'scipopt',
+        #'scipopt-.linux.x86_64.gnu.opt',
+        #'soplex-6.0.0.linux.x86_64.gnu.opt',
+        #'soplex',
+        #'soplex.linux.x86_64.gnu.opt',
+        #'tpinone-8.0.0.linux.x86_64.gnu.opt',
+        #'tpinone',
+        #'tpinone.linux.x86_64.gnu.opt',
+        #'zimpl.linux.x86_64.gnu.opt',
+        ]
+
 static_lib_dir = '.deps/x86_64-linux-gnu/lib'
-libraries = ['z','gmp']
+libraries = ['z','gmp','hf','scip']
 include_dirs=['src','src/lib']
-library_dirs = ['/lib','/usr/lib','/system/lib', '/system/lib64']
+library_dirs = ['.deps/x86_64-linux-gnu/lib','/lib','/usr/lib','/system/lib', '/system/lib64']
 
 if sys.platform == 'win32':
     libraries.extend(static_libraries)
@@ -17,8 +42,8 @@ else: # POSIX
 
 module1 = Extension('hfopt', sources = [
     'src/py/hf-py.cpp',
-    #'src/lib/modules.cpp', # included via library, above
-    #'src/lib/hf-problem.cpp'
+    'src/lib/modules.cpp', # included via library, above
+    'src/lib/hf-problem.cpp'
     ],
     libraries=libraries,
     library_dirs=library_dirs,

@@ -62,7 +62,7 @@
 
     for (int i=0;i<num_req_mods;i++){
       char* name = req_mod_names[i];
-      int count = req_mod_counts[i]; 
+      //int count = req_mod_counts[i]; 
       auto modp = by_name(name);
       if (!modp){
         return nullptr;
@@ -72,7 +72,7 @@
     SOLVECODE c = solve(counts, all, bounds, reqs, opts);
     if (c == OK){
       PyObject* py_list = PyList_New(counts.size());
-      for (int i=0;i<counts.size();i ++){
+      for (size_t i=0;i<counts.size();i ++){
         PyObject* py_tup = Py_BuildValue("si",all[i].name,counts[i]);
         PyList_SetItem(py_list,i,py_tup);
       }
