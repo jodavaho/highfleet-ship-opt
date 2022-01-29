@@ -8,7 +8,7 @@
 
 std::string get_help();
 
-void parse_opts(
+bool parse_opts(
     int argc, char** argv, 
     struct Bounds& out_bounds, 
     std::vector<struct module> & out_modules

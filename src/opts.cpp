@@ -20,8 +20,9 @@ static const int WT_MIN=3;
 static const int WT_MAX=4;
 static const int SPD_MIN=5;
 
-void parse_opts(int argc, char** argv, Bounds& out_bounds, std::vector<module> & out_modules)
+bool parse_opts(int argc, char** argv, Bounds& out_bounds, std::vector<module> & out_modules)
 {
+  bool ok =false;
   static struct option long_opts[] = 
   {
     {"range_min", required_argument, 0, RANGE_MIN},
@@ -39,12 +40,12 @@ void parse_opts(int argc, char** argv, Bounds& out_bounds, std::vector<module> &
     ret = getopt_long(argc,argv,"",long_opts,&opt_idx);
     if (ret<0){break;}
     switch(ret){
-      case RANGE_MIN : { out_bounds.range_min=std::atof(optarg); break;}
-      case TWR_MIN: { out_bounds.twr_min=std::atof(optarg); break;}
-      case WT_MIN: { out_bounds.wt_min=std::atof(optarg); break;}
-      case WT_MAX: { out_bounds.wt_max=std::atof(optarg); break;}
-      case SPD_MIN: { out_bounds.spd_min=std::atof(optarg); break;}
-      default:{ err_out(optarg); break;}
+      case      RANGE_MIN:  {ok=true;out_bounds.range_min=std::atof(optarg);  break;}
+      case      TWR_MIN:    {ok=true;out_bounds.twr_min=std::atof(optarg);    break;}
+      case      WT_MIN:     {ok=true;out_bounds.wt_min=std::atof(optarg);     break;}
+      case      WT_MAX:     {ok=true;out_bounds.wt_max=std::atof(optarg);     break;}
+      case      SPD_MIN:    {ok=true;out_bounds.spd_min=std::atof(optarg);    break;}
+      default:  {err_out(optarg);return false;  break;}
     };
   }
   for (int i=optind;i<argc;i++)
@@ -60,19 +61,25 @@ void parse_opts(int argc, char** argv, Bounds& out_bounds, std::vector<module> &
         size_t count = std::atoi(val.c_str());
         for (int i=0;i<count;i++){
           out_modules.push_back(*m);
-        }
+          ok=true;
+        }//count==0 falls through, and is not OK
       } else {
         std::cerr<<"Unrecognized argument: "<<argval<<std::endl;
+        return false;
       }
     } else {
       auto m = by_name(argval);
       if (!m){
         std::cerr<<"Unrecognized argument: "<<argval<<std::endl;
+        return false;
       } else {
+        //got a valid module request
         out_modules.push_back(*m);
+        ok=true;
       }
     }
   }
+  return false;
 }
 
 std::string get_credits()

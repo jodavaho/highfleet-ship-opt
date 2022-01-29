@@ -6,6 +6,7 @@
 
 struct SolveOptions{
   bool include_hull=true;
+  bool quiet=true;
 };
 
 struct Bounds{

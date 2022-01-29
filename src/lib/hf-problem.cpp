@@ -33,6 +33,9 @@ SOLVECODE solve(
   SCIP_CHK( SCIPincludeDefaultPlugins(g));
   SCIP_CHK( SCIPsetObjsense(g, SCIP_OBJSENSE_MINIMIZE));
   SCIP_CHK( SCIPsetRealParam(g, "limits/gap", 0.01) );
+  if (opts.quiet){
+    SCIP_CHK( SCIPsetIntParam(g, "display/verblevel", 0) );
+  }
   size_t N = mods.size();
   out_counts.resize(N);
   std::vector<SCIP_VAR*> vars(N);

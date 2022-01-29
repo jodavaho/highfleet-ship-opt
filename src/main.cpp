@@ -67,12 +67,36 @@ int execopt(int argc, char** argv){
   return 0;
 }
 
-void print_help(int argc, char**argv){
-  std::cout<<argv[0]<<" <command>"<<std::endl;
+const char* docstring = 
+"A Highfleet (tm) ship module selector and optimizer\n"
+"(c) 2022 Joshua Vander Hook\n"
+"Highfleet is trademarked by Konstantin Koshutin\n"
+"\n";
 
+const char* helpstr = 
+"\n"
+"There are a few subtleties to the solutions.\n"
+" - Because of the way hull sections are priced,\n"
+"   we may output many 1x1 hulls instead of 2x2 hulls\n"
+"\n";
+
+void print_help(int argc, char**argv){
+  std::cout<<docstring<<std::endl;
+  std::cout<<argv[0]<<" <command> [options] "<<std::endl;
+  std::cout<<"   as in: "<<std::endl<<std::endl;
+  std::cout<<argv[0]<<" help "<<std::endl;
+  std::cout<<argv[0]<<" print-modules "<<std::endl;
+  std::cout<<argv[0]<<" fill [bounds] [<module_tag>=<#>] "<<std::endl<<std::endl;
+  std::cout<<" examples: "<<std::endl<<std::endl;
+  std::cout<<" Generate something like the Lightning: "<<std::endl;
+  std::cout<<argv[0]<<" fill --range_min=800 --speed_min=600 gun_ak100=2 "<<std::endl;
 }
 
 int main(int argc, char** argv){
+  if (argc>1 && strcmp(argv[1],"help")==0){
+    print_help(argc,argv);
+    return 0;
+  }
   if (argc>1 && strcmp(argv[1],"print-modules")==0){
     for (auto m: get_all_modules()){
       std::cout<<m<<std::endl;
