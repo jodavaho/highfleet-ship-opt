@@ -1,4 +1,5 @@
 TARGET:=$(shell gcc -dumpmachine)
+ARCH:=x86_64 #TODO: fix to scrape from TARGET
 LIBA:=-L.deps/$(TARGET)/lib -Lbuild/$(TARGET)  -lz -lgmp
 CXXFLAGS:= -Isrc -std=c++2a -I.deps/$(TARGET)/include -DNO_CONFIG_HEADER
 PYFLAGS:= -I/usr/include/python3.8
@@ -8,27 +9,25 @@ CC  := $(TARGET)-gcc
 
 SRCD := src
 OBJD := build/$(TARGET)
-PYOBJD := pybuild/$(TARGET)
-PYSRC   := $(wildcard $(SRCD)/py/*.cpp)
-PYOBJ   := $(patsubst $(SRCD)/py/%.cpp,$(PYOBJD)/%.o,$(PYSRC))
 LIBSRC  := $(wildcard $(SRCD)/lib/*.cpp)
 LIBOBJ  := $(patsubst $(SRCD)/lib/%.cpp,$(OBJD)/%.o,$(LIBSRC))
 SCIPOBJ := .deps/$(TARGET)/lib/libscip.a .deps/$(TARGET)/lib/libsoplex.a
-MAIN := src/main.cpp
 
-all: $(OBJD) $(PYOBJD) build/$(TARGET)/hftop build/$(TARGET)/libhf.so pybuild/$(TARGET)/libhf-py.so
+# Main outputs
+MAIN := src/main.cpp src/opts.cpp
+EXE := build/$(TARGET)/hftop
+LIB := build/$(TARGET)/libhf.so
 
-build/$(TARGET)/hftop: src/main.cpp src/opts.cpp build/$(TARGET)/libhf.so $(SCIPOBJ)
+PYOBJD := build/lib.linux-$(ARCH)-3.8
+PYLIB := $(PYOBJD)/hfopt.cpython-38-$(TARGET).so
+
+all: $(OBJD) $(EXE) $(LIB)  $(PYLIB)
+
+$(EXE): $(MAIN) $(LIB) $(SCIPOBJ)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LIBA) -lhf
 
-build/$(TARGET)/libhf.so: $(LIBOBJ)
+$(LIB): $(LIBOBJ)
 	$(CXX) -shared -Wl,-soname,$@ -o $@ $(LIBOBJ) -lc 
-
-pybuild/$(TARGET)/libhf-py.so: $(LIBOBJ) $(PYOBJ)
-	$(CXX) -shared -Wl,-soname,$@ -o $@ $(LIBOBJ)  -lc 
-
-$(PYOBJD)/%.o: $(SRCD)/py/%.cpp 
-	$(CXX) -fPIC $(CXXFLAGS) $(PYFLAGS)  -c $< -o $@
 
 $(OBJD)/%.o: $(SRCD)/lib/%.cpp 
 	$(CXX) -fPIC $(CXXFLAGS)  -c $< -o $@
@@ -36,15 +35,14 @@ $(OBJD)/%.o: $(SRCD)/lib/%.cpp
 $(OBJD):
 	mkdir -p build/$(TARGET)
 
-$(PYOBJD):
-	mkdir -p pybuild/$(TARGET)
-
 $(SCIPOBJ):
 	@echo "You need to build $@ ... see README.md"
 
+$(PYLIB): $(LIB)
+	$(shell python3 build_py.py)
+
 clean:
 	rm -rf build/$(TARGET)
-	rm -rf pybuild/$(TARGET)
 
 clean-all:
 	rm -rf build/
