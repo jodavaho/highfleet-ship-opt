@@ -2,11 +2,11 @@ from distutils.core import setup, Extension
 import sys
 
 #https://stackoverflow.com/a/49139257
-static_libraries = ['scip']
+static_libraries = ['scip','hf']
 static_lib_dir = '.deps/x86_64-linux-gnu/lib'
-libraries = ['z','gmp','hf']
+libraries = ['z','gmp']
 include_dirs=['src','src/lib']
-library_dirs = ['build/x86_64-linux-gnu','/lib','/usr/lib','/system/lib', '/system/lib64']
+library_dirs = ['/lib','/usr/lib','/system/lib', '/system/lib64']
 
 if sys.platform == 'win32':
     libraries.extend(static_libraries)
@@ -24,7 +24,7 @@ module1 = Extension('hfopt', sources = [
     library_dirs=library_dirs,
     include_dirs=include_dirs,
     extra_objects=extra_objects,
-    extra_compile_args=['-std=c++17'],
+    extra_compile_args=['-fPIC','-std=c++2a','-I.deps/x86_64-linux-gnu/include','-DNO_CONFIG_HEADER'],
     )
 
 setup (name = 'Highfleet Ship Opt',
