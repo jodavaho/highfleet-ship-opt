@@ -1,22 +1,24 @@
 TARGET:=$(shell gcc -dumpmachine)
 ARCH:=x86_64 #TODO: fix to scrape from TARGET
-LIBA:=-L.deps/$(TARGET)/lib -Lbuild/$(TARGET)  -lz -lgmp
-CXXFLAGS:= -Isrc -std=c++2a -I.deps/$(TARGET)/include -DNO_CONFIG_HEADER
-PYFLAGS:= -I/usr/include/python3.8
 
 CXX := $(TARGET)-g++
 CC  := $(TARGET)-gcc
 
+LIBA:=-L.deps/$(TARGET)/lib -Lbuild/$(TARGET)  -lz -lgmp
+CXXFLAGS:= -Isrc -std=c++2a -I.deps/$(TARGET)/include -DNO_CONFIG_HEADER
+
 SRCD := src
 OBJD := build/$(TARGET)
+
+# Lib outputs
 LIBSRC  := $(wildcard $(SRCD)/lib/*.cpp)
 LIBOBJ  := $(patsubst $(SRCD)/lib/%.cpp,$(OBJD)/%.o,$(LIBSRC))
 SCIPOBJ := .deps/$(TARGET)/lib/libscip.a .deps/$(TARGET)/lib/libsoplex.a
+LIB := build/$(TARGET)/libhf.so
 
 # Main outputs
 MAIN := src/main.cpp src/opts.cpp
 EXE := build/$(TARGET)/hftop
-LIB := build/$(TARGET)/libhf.so
 
 PYOBJD := build/lib.linux-$(ARCH)-3.8
 PYLIB := $(PYOBJD)/hfopt.cpython-38-$(TARGET).so
@@ -39,7 +41,8 @@ $(SCIPOBJ):
 	@echo "You need to build $@ ... see README.md"
 
 $(PYLIB): $(LIB)
-	$(shell python3 build_py.py)
+	$(shell python3 build_py.py build)
+	cp src/py/*.py bu
 
 clean:
 	rm -rf build/$(TARGET)
