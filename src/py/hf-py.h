@@ -8,9 +8,7 @@
 extern "C" {
 #endif
 
-  Bounds_new(){ return init_bounds(); }
-  Bounds init_bounds();
-  SolveOptions init_options();
+  PyObject* print_version(PyObject* self, PyObject* args);
 
   PyObject* solve_simple(int num_req_mods, char** req_mod_names, int* req_mod_counts, Bounds bounds, SolveOptions opts);
 

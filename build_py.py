@@ -52,7 +52,7 @@ module1 = Extension('hfopt', sources = [
     extra_compile_args=['-fPIC','-std=c++2a','-I.deps/x86_64-linux-gnu/include','-DNO_CONFIG_HEADER'],
     )
 
-setup (name = 'Highfleet Ship Opt',
-       version = '1.0',
-       description = '',
+setup(name = 'hfopt',
+       version = '0.1.1',
+       description = "HF Ship Opt.",
        ext_modules = [module1])

@@ -1,6 +1,7 @@
 #define PY_SSIZE_T_CLEAN
 #include <python3.8/Python.h>
 #include "lib/hf-problem.hpp"
+#include <iostream>
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,41 +14,31 @@ extern "C" {
     if (!PyArg_ParseTuple(args, "i", &num_req_mods))
         return NULL;
     //PyErr_SetString();
-    return nullptr;
+    return PyLong_FromLong(0);
+  }
+
+  static PyObject* print_version(PyObject* self, PyObject* args){
+    std::cout<<"Version"<<std::endl;
+    return PyLong_FromLong(0);
   }
 
   static PyMethodDef hfopt_methods[] = {
-    {"hfopt",  solve_fill, METH_VARARGS,
-      "Solve a 'fill' problem given some modules and design constraints."},
+    {"solve_fill",  solve_fill, METH_VARARGS, "Solve a 'fill' problem given some modules and design constraints."},
+    {"version",  print_version, METH_VARARGS, "Print version"},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 
   };
 
   static struct PyModuleDef hfopt_module= {
     PyModuleDef_HEAD_INIT,
-    "hfopt",   /* name of module */
-    nullptr, /* module documentation, may be NULL */
-    -1,       /* size of per-interpreter state of the module,
-                 or -1 if the module keeps state in global variables. */
+    "hfopt",  
+    "A HF Ship Optimization module. See jodavaho.io/highfleet", 
+    -1,      
     hfopt_methods
   };
 
   PyMODINIT_FUNC PyInit_hfopt(void){
-    PyObject *m;
-    m = PyModule_Create(&hfopt_module);
-    //pass
-    return m;
-  }
-
-  Bounds init_bounds(){
-    Bounds b;
-    return b;
-  }
-
-  SolveOptions init_options()
-  {
-    SolveOptions opts;
-    return opts;
+    return PyModule_Create(&hfopt_module);
   }
 
   PyObject* solve_fill_simple(int num_req_mods, char** req_mod_names, int* req_mod_counts, Bounds bounds, SolveOptions opts)
