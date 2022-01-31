@@ -8,10 +8,11 @@
 extern "C" {
 #endif
 
-Bounds init_bounds();
-SolveOptions init_options();
+  Bounds_new(){ return init_bounds(); }
+  Bounds init_bounds();
+  SolveOptions init_options();
 
-PyObject* solve_simple(int num_req_mods, char** req_mod_names, int* req_mod_counts, Bounds bounds, SolveOptions opts);
+  PyObject* solve_simple(int num_req_mods, char** req_mod_names, int* req_mod_counts, Bounds bounds, SolveOptions opts);
 
 #ifdef __cplusplus
 }

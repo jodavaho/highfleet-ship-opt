@@ -2,9 +2,9 @@
 #include <python3.8/Python.h>
 #include "lib/hf-problem.hpp"
 
-//#ifdef __cplusplus
-//extern "C" {
-//#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
   static PyObject * solve_fill(PyObject *self, PyObject *args)
@@ -82,6 +82,6 @@
   }
 
 
-//#ifdef __cplusplus
-//}
-//#endif
+#ifdef __cplusplus
+}
+#endif

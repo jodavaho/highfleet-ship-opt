@@ -62,7 +62,7 @@ $(SCIPOBJ):
 
 # To build python library, link in libhf.so and build the thing from src/py/*
 # Not sure if libhf.a or libhf.so will work ... testing
-$(PYLIB): $(SLIB)
+$(PYLIB): $(SLIB) src/py/hfopt.py
 	cp $(LIB) $(DEPS)/
 	cp $(SLIB) $(DEPS)/
 	python3 build_py.py build  -j4 
