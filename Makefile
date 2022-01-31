@@ -64,13 +64,13 @@ $(SCIPOBJ):
 
 # To build python library, link in libhf.so and build the thing from src/py/*
 # Not sure if libhf.a or libhf.so will work ... testing
-$(PYLIB): $(SLIB) src/py/hfopt.py $(PYSRC) build_py.py
+$(PYLIB): $(SLIB) src/py/opt.py $(PYSRC) build_py.py
 	cp $(LIB) $(DEPS)/
 	cp $(SLIB) $(DEPS)/
 	python3 build_py.py build  -j4 
-	mkdir $(PYOBJD)/hfopt -p
-	cp $(PYSRCD)/*.py $(PYOBJD)/hfopt
-	mv $(PYLIB) $(PYOBJD)/hfopt
+	mkdir $(PYOBJD)/hf -p
+	cp $(PYSRCD)/*.py $(PYOBJD)/hf
+	mv $(PYLIB) $(PYOBJD)/hf
 
 clean:
 	rm -rf build/$(TARGET)/*
