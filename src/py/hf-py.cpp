@@ -13,12 +13,11 @@ extern "C" {
     int num_req_mods=0;
     if (!PyArg_ParseTuple(args, "i", &num_req_mods))
         return NULL;
-    //PyErr_SetString();
     return PyLong_FromLong(0);
   }
 
   static PyObject* print_version(PyObject* self, PyObject* args){
-    std::cout<<"Version"<<std::endl;
+    std::cout<<"Version: "<<hf_opt_version<<std::endl;
     return PyLong_FromLong(0);
   }
 
@@ -31,17 +30,17 @@ extern "C" {
 
   static struct PyModuleDef hfopt_module= {
     PyModuleDef_HEAD_INIT,
-    "hfopt",  
+    "hfopt_lib",  
     "A HF Ship Optimization module. See jodavaho.io/highfleet", 
     -1,      
     hfopt_methods
   };
 
-  PyMODINIT_FUNC PyInit_hfopt(void){
+  PyMODINIT_FUNC PyInit_hfopt_lib(void){
     return PyModule_Create(&hfopt_module);
   }
 
-  PyObject* solve_fill_simple(int num_req_mods, char** req_mod_names, int* req_mod_counts, Bounds bounds, SolveOptions opts)
+  PyObject* solve_fill_ctypes(int num_req_mods, char** req_mod_names, int* req_mod_counts, Bounds bounds, SolveOptions opts)
   {
     std::vector<module> reqs;
     std::vector<size_t> counts;

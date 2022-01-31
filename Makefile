@@ -31,10 +31,10 @@ MAIN := src/main.cpp src/opts.cpp
 EXE := build/$(TARGET)/hfopt
 
 # Some python outputs
-PYSRCD := src/lib/py
+PYSRCD := $(SRCD)/py
 PYOBJD := build/lib.linux-$(ARCH)-3.8
 PYSRC := $(wildcard $(PYSRCD)/*.cpp)
-PYLIB := $(PYOBJD)/hfopt.cpython-38-$(TARGET).so
+PYLIB := $(PYOBJD)/hfopt_lib.cpython-38-$(TARGET).so
 
 all: $(OBJD) $(EXE) $(LIB) $(PYLIB)
 
@@ -64,13 +64,13 @@ $(SCIPOBJ):
 
 # To build python library, link in libhf.so and build the thing from src/py/*
 # Not sure if libhf.a or libhf.so will work ... testing
-$(PYLIB): $(SLIB) src/py/hfopt.py $(PYSRC)
+$(PYLIB): $(SLIB) src/py/hfopt.py $(PYSRC) build_py.py
 	cp $(LIB) $(DEPS)/
 	cp $(SLIB) $(DEPS)/
 	python3 build_py.py build  -j4 
-	cp src/py/*.py $(PYOBJD)
-	cp $(LIB) $(PYOBJD)
-	cp $(DEPS)/libscip.so $(PYOBJD)
+	mkdir $(PYOBJD)/hfopt -p
+	cp $(PYSRCD)/*.py $(PYOBJD)/hfopt
+	mv $(PYLIB) $(PYOBJD)/hfopt
 
 clean:
 	rm -rf build/$(TARGET)/*

@@ -4,6 +4,10 @@
 #include <vector>
 #include "modules.hpp"
 
+#ifndef hf_opt_version
+#define hf_opt_version "0.9.0"
+#endif
+
 struct SolveOptions{
   bool include_hull=true;
   bool quiet=true;

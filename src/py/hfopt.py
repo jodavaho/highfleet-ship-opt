@@ -1,17 +1,8 @@
-from ctypes import cdll
+import hfopt_lib
 
-def __init__():
-    pass
+class hfopt:
+    def __init__(self):
+        pass
 
-def __bootstrap__():
-   print("loading hfopt")
-   global __bootstrap__, __loader__, __file__
-   import sys, pkg_resources, imp
-
-   __file__ = pkg_resources.resource_filename(__name__,'hfopt.cpython-38-x86_64-linux-gnu.so')
-   imp.load_dynamic(__name__,__file__)
-
-   __loader__ = None; del __bootstrap__, __loader__
-
-print("loading hfopt")
-__bootstrap__()
+    def version():
+        return hfopt_lib.version()
