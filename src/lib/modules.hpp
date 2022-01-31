@@ -7,6 +7,7 @@
 #include <set>
 
 namespace hf{
+
   /**
    *
    * Generic, not very well ecapsulated, structure to hold all module data
@@ -56,7 +57,8 @@ namespace hf{
 
   //return all modules for iteration
   //e.g.,. for (const auto m: get_all_modules()) {...}
-  ModuleSet get_all_modules();
+  const ModuleSet get_all_modules();
+  const size_t num_modules = get_all_modules().size();
 
 }
 

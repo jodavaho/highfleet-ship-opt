@@ -66,6 +66,7 @@ extern "C" {
 
   PyObject* solve_fill_ctypes(int num_req_mods, char** req_mod_names, int* req_mod_counts, hf::Bounds bounds, hf::SolveOptions opts)
   {
+    assert(num_req_mods == hf::num_modules);
     std::vector<hf::module> reqs;
     std::vector<size_t> counts;
     std::vector<hf::module> all;
@@ -85,12 +86,15 @@ extern "C" {
     }
     hf::SOLVECODE c = solve(counts, all, bounds, reqs, opts);
     if (c == hf::OK){
-      PyObject* py_list = PyList_New(counts.size());
+      PyObject* py_dict = PyDict_New();
+      assert(py_dict);
       for (size_t i=0;i<counts.size();i ++){
-        PyObject* py_tup = Py_BuildValue("si",all[i].name,counts[i]);
-        PyList_SetItem(py_list,i,py_tup);
+        PyDict_SetItem(py_dict,
+            PyUnicode_FromString(req_mod_names[i]),
+            Py_BuildValue("l",counts[i])
+            );
       }
-      return py_list;
+      return py_dict;
     }
     return nullptr;
   }

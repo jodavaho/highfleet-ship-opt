@@ -48,7 +48,7 @@ namespace hf{
     return module_helpers::get_hull(sq,mount);
   }
 
-  ModuleSet create_all_mods(){
+  static ModuleSet create_all_mods(){
     ModuleSet ret;
     ret.insert({"bridge",             2,  2,  4,   25,     100,  0,      0,      60,   0,    0,     0,     0,   0,   0,      module::EXTERIOR});
     ret.insert({"hull_2x2",           2,  2,  4,   25.8,   100,  20,     0,      0,    0,    0,     0,     0,   0,   0,      module::HULL});
@@ -111,7 +111,7 @@ namespace hf{
 
   const ModuleSet all_modules = create_all_mods();
 
-  ModuleSet get_all_modules()
+  const ModuleSet get_all_modules()
   {
     return all_modules;
   }
