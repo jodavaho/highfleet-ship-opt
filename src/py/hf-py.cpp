@@ -3,6 +3,7 @@
 #include "lib/hf-problem.hpp"
 #include "py/hf-py.h"
 #include <iostream>
+#include <vector>
 
 #ifdef __cplusplus
 extern "C" {
@@ -10,6 +11,23 @@ extern "C" {
 
   static PyObject* version(PyObject* self, PyObject* args){
     return PyUnicode_FromString(hf_opt_version);
+  }
+
+  static PyObject * get_module_names(PyObject *self, PyObject *args)
+  {
+    std::vector<hf::module> vec;
+    hf::ModuleSet ms = hf::get_all_modules();
+    vec.insert(vec.end(), ms.begin(), ms.end());
+    size_t N = ms.size();
+    assert(N==vec.size());
+    PyObject* module_name_list = PyList_New(N);
+    for (size_t i=0;i<N;i++){
+      Py_ssize_t idx(i);
+      hf::module mod = vec[i];
+      PyObject * name = PyUnicode_FromString(mod.name.c_str());
+      PyList_SetItem(module_name_list, idx, name);
+    }
+    return module_name_list;
   }
 
   static PyObject * solve_fill(PyObject *self, PyObject *args)
@@ -28,6 +46,7 @@ extern "C" {
   static PyMethodDef hfopt_methods[] = {
     {"solve_fill",  solve_fill, METH_VARARGS, "Solve a 'fill' problem given some modules and design constraints."},
     {"print_version",  print_version, METH_VARARGS, "Print version"},
+    {"get_module_names",  get_module_names, METH_VARARGS, "Print version"},
     {"version",  version, METH_VARARGS, "Print version"},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 
