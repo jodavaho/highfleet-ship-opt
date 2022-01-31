@@ -17,7 +17,7 @@
                        while( FALSE )
 
 
-SOLVECODE solve(
+hf::SOLVECODE hf::solve(
     std::vector<size_t> &out_counts,
     const std::vector<module> &mods,
     const Bounds bounds,
@@ -458,7 +458,9 @@ SOLVECODE solve(
   return OK;
 }
 
-std::ostream& operator<<(std::ostream& os, const Bounds&b){
+std::ostream& operator<<(std::ostream& os, const hf::Bounds&b){
   os<<"Range =["<<b.range_min<<","<<b.range_max<<"]";
   return os;
 }
+
+const char* hf::version(){ return hf_opt_version; }

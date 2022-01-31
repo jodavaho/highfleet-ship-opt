@@ -6,6 +6,10 @@
 #include <string>
 #include <vector>
 
+using hf::Bounds;
+using hf::SolveOptions;
+using hf::module;
+
 std::string get_help();
 
 bool parse_opts(

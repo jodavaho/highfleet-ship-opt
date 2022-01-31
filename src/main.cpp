@@ -14,6 +14,11 @@
 #include <cstring>
 #include <iomanip>
 
+using hf::Bounds;
+using hf::SolveOptions;
+using hf::solve;
+using hf::SOLVECODE;
+
 void output_sol(std::vector<size_t> counts, std::vector<module> modules){
   size_t N = modules.size();
   assert(N==counts.size());
@@ -32,7 +37,7 @@ void output_sol(std::vector<size_t> counts, std::vector<module> modules){
 
 int execopt(int argc, char** argv){
   std::vector<module> available_mods;
-  for (const auto m: get_all_modules()){
+  for (const auto m: hf::get_all_modules()){
     available_mods.push_back(m);
   }
   std::vector<size_t> counts(available_mods.size());
@@ -56,9 +61,9 @@ int execopt(int argc, char** argv){
   std::cout<<"Bounds:"<<std::endl<<b<<std::endl;
   SOLVECODE retcode = solve(counts, available_mods, b, req, opts );
   switch (retcode){
-    case OK: {output_sol(counts, available_mods);return 0;}
-    case ERR_INFEASIBLE:{ std::cout<<"Infeasible"<<std::endl; return 1;}
-    case ERR_INTERNAL:{ std::cout<<"Internal hf library error!"<<std::endl; return 1;}
+    case hf::OK: {output_sol(counts, available_mods);return 0;}
+    case hf::ERR_INFEASIBLE:{ std::cout<<"Infeasible"<<std::endl; return 1;}
+    case hf::ERR_INTERNAL:{ std::cout<<"Internal hf library error!"<<std::endl; return 1;}
   }
   return 0;
 }
@@ -94,7 +99,7 @@ int main(int argc, char** argv){
     return 0;
   }
   if (argc>1 && strcmp(argv[1],"print-modules")==0){
-    for (auto m: get_all_modules()){
+    for (auto m: hf::get_all_modules()){
       std::cout<<m<<std::endl;
     }
     return 0;

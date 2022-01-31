@@ -54,7 +54,7 @@ bool parse_opts(int argc, char** argv, Bounds& out_bounds, std::vector<module> &
     if (idx!=std::string::npos){
       //break up into name/count
       std::string name = argval.substr(0,idx);
-      auto m = by_name(name);
+      auto m = hf::by_name(name);
       if (m){
         std::string val  = argval.substr(idx+1);
         size_t count = std::atoi(val.c_str());
@@ -67,7 +67,7 @@ bool parse_opts(int argc, char** argv, Bounds& out_bounds, std::vector<module> &
         return false;
       }
     } else {
-      auto m = by_name(argval);
+      auto m = hf::by_name(argval);
       if (!m){
         std::cerr<<"Unrecognized argument: "<<argval<<std::endl;
         return false;
