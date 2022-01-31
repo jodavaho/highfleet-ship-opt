@@ -12,6 +12,7 @@ namespace module_helpers{
       case module::LARGE:{ return by_name("hull_4x4"); }
       case module::EXTERIOR:{ return {}; }
       case module::RUNWAY:{ return by_name("flight_deck"); }
+      case module::HULL:{ return {}; }
       case module::SMALL:{ 
                            if (sqs==2.0){
                              return by_name("hull_2x1");
@@ -26,7 +27,7 @@ namespace module_helpers{
     };
     return {};
   }
-};
+}
 
 std::optional<const module> by_name(std::string des)
 {

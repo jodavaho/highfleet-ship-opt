@@ -37,11 +37,6 @@ int execopt(int argc, char** argv){
   }
   std::vector<size_t> counts(available_mods.size());
   Bounds b;
-  static struct {
-    int operator()(module m1, module m2)const{
-      return m1.name < m2.name;
-    }
-  }name_cmp;
   std::vector<module> req;
   parse_opts(argc, argv, b, req);
   auto begin = available_mods.begin();
@@ -63,6 +58,7 @@ int execopt(int argc, char** argv){
   switch (retcode){
     case OK: {output_sol(counts, available_mods);return 0;}
     case ERR_INFEASIBLE:{ std::cout<<"Infeasible"<<std::endl; return 1;}
+    case ERR_INTERNAL:{ std::cout<<"Internal hf library error!"<<std::endl; return 1;}
   }
   return 0;
 }

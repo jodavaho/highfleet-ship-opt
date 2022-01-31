@@ -33,7 +33,6 @@ bool parse_opts(int argc, char** argv, Bounds& out_bounds, std::vector<module> &
     {0,0,0,0}
   };
 
-  int cur_idx;
   int opt_idx;
   int ret=0;
   while(1){
@@ -59,7 +58,7 @@ bool parse_opts(int argc, char** argv, Bounds& out_bounds, std::vector<module> &
       if (m){
         std::string val  = argval.substr(idx+1);
         size_t count = std::atoi(val.c_str());
-        for (int i=0;i<count;i++){
+        for (size_t i=0;i<count;i++){
           out_modules.push_back(*m);
           ok=true;
         }//count==0 falls through, and is not OK
@@ -79,7 +78,7 @@ bool parse_opts(int argc, char** argv, Bounds& out_bounds, std::vector<module> &
       }
     }
   }
-  return false;
+  return ok;
 }
 
 std::string get_credits()

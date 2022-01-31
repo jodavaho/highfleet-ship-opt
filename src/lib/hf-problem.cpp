@@ -94,7 +94,6 @@ SOLVECODE solve(
     for (size_t i=0;i<N;i++){
       vals[i] = std::fabs(mods[i].fuel_rate);
     }
-    SCIP_EXPR * terms[1];
     SCIP_CHK ( SCIPcreateExprSum(g,&sum_fuel_rate,N,ex_vars.data(),vals.data(),0.0,NULL,NULL));
   }
 
@@ -437,7 +436,7 @@ SOLVECODE solve(
     //SCIPinfoMessage(g, NULL, "\nSolution:\n");
     auto sol = SCIPgetBestSol(g);
     //SCIP_CHK( SCIPprintSol(g, sol, NULL, FALSE) );
-    for (int i=0;i<N;i++){
+    for (size_t i=0;i<N;i++){
       out_counts[i]=(size_t) std::round(SCIPgetSolVal(g,sol,vars[i]));
     }
   } else {
@@ -450,7 +449,7 @@ SOLVECODE solve(
   for (auto exprpp: other_expr){
     SCIPreleaseExpr(g,exprpp);
   }
-  for (int i=0;i<N;i++){
+  for (size_t i=0;i<N;i++){
     SCIPreleaseExpr(g,&ex_vars[i]);
     SCIPreleaseVar(g,&vars[i]);
   }
