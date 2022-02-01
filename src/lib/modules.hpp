@@ -57,7 +57,8 @@ namespace hf{
 
   //return all modules for iteration
   //e.g.,. for (const auto m: get_all_modules()) {...}
-  const ModuleSet get_all_modules();
+  const ModuleSet get_module_set();
+  const std::vector<module> get_all_modules();
   const size_t num_modules = get_all_modules().size();
 
 }

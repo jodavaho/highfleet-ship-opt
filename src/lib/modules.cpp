@@ -32,22 +32,6 @@ namespace module_helpers{
 }
 
 namespace hf{
-  std::optional<const module> by_name(std::string des)
-  {
-    for (const auto m: get_all_modules()){
-      if (m.name==des){
-        return m;
-      }
-    }
-    return std::optional<module>();
-  }
-
-
-  std::optional<module> module::get_hull() const
-  {
-    return module_helpers::get_hull(sq,mount);
-  }
-
   static ModuleSet create_all_mods(){
     ModuleSet ret;
     ret.insert({"bridge",             2,  2,  4,   25,     100,  0,      0,      60,   0,    0,     0,     0,   0,   0,      module::EXTERIOR});
@@ -110,11 +94,29 @@ namespace hf{
   }
 
   const ModuleSet all_modules = create_all_mods();
+  const std::vector<module> vec_modules(all_modules.begin(), all_modules.end());
 
-  const ModuleSet get_all_modules()
+  const std::vector<module> get_all_modules()
   {
-    return all_modules;
+    return vec_modules;
   }
+
+  std::optional<const module> by_name(std::string des)
+  {
+    module dummy{.name=des};
+    auto it = all_modules.find(dummy);
+    if (it!=all_modules.end()){
+      return *it;
+    }
+    return {};
+  }
+
+
+  std::optional<module> module::get_hull() const
+  {
+    return module_helpers::get_hull(sq,mount);
+  }
+
 }
 
 std::ostream& operator<<(std::ostream& os, const module&m){

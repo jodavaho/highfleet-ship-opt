@@ -35,9 +35,19 @@ namespace hf{
   enum SOLVECODE{
     OK=0,
     ERR_INFEASIBLE,
-    ERR_INTERNAL
+    ERR_INTERNAL,
+    ERR_INVARG
   };
 
+  SOLVECODE solve(
+      std::vector<size_t> &in_out_counts,
+      const std::vector<module> &mods,
+      const Bounds bounds=Bounds(),
+      const SolveOptions opts={}
+      );
+
+
+  //@depricated
   SOLVECODE solve(
       std::vector<size_t> &out_counts,
       const std::vector<module> &mods,

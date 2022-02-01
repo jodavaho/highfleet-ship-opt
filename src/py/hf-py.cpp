@@ -15,13 +15,10 @@ extern "C" {
 
   static PyObject * get_module_names(PyObject *self, PyObject *args)
   {
-    std::vector<hf::module> vec;
-    hf::ModuleSet ms = hf::get_all_modules();
-    vec.insert(vec.end(), ms.begin(), ms.end());
-    size_t N = ms.size();
-    assert(N==vec.size());
-    PyObject* module_name_list = PyList_New(N);
-    for (size_t i=0;i<N;i++){
+    std::vector<hf::module> vec = hf::get_all_modules();
+    PyObject* module_name_list = PyList_New(hf::num_modules);
+    assert(hf::num_modules==vec.size());
+    for (size_t i=0;i<hf::num_modules;i++){
       Py_ssize_t idx(i);
       hf::module mod = vec[i];
       PyObject * name = PyUnicode_FromString(mod.name.c_str());
@@ -32,9 +29,15 @@ extern "C" {
 
   static PyObject * solve_fill(PyObject *self, PyObject *args)
   {
-    int num_req_mods=0;
-    if (!PyArg_ParseTuple(args, "i", &num_req_mods))
+    char* req_mod_str; 
+    hf::Bounds b;
+    hf::SolveOptions o;
+    if (!PyArg_ParseTuple(args, "siii", &req_mod_str, &b.range_min, &b.spd_min, &b.twr_min))
         return NULL;
+    const std::vector<hf::module> all_modules = hf::get_all_modules();
+    std::vector<size_t> optimized_counts(hf::num_modules);//populate from minimums
+    auto retcode = solve(optimized_counts,all_modules,b,o); 
+    (void)retcode;
     Py_RETURN_NONE;
   }
 

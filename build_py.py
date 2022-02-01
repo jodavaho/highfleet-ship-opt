@@ -51,7 +51,7 @@ module1 = Extension('hfopt_lib', sources = [
     library_dirs=library_dirs,
     include_dirs=include_dirs,
     extra_objects=extra_objects,
-    extra_compile_args=['-fPIC','-std=c++2a','-I.deps/x86_64-linux-gnu/include','-DNO_CONFIG_HEADER'],
+    extra_compile_args=['-Werror','-fPIC','-std=c++2a','-I.deps/x86_64-linux-gnu/include','-DNO_CONFIG_HEADER'],
     )
 
 setup(name = 'hfopt_lib',

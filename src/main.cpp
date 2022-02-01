@@ -36,11 +36,8 @@ void output_sol(std::vector<size_t> counts, std::vector<module> modules){
 }
 
 int execopt(int argc, char** argv){
-  std::vector<module> available_mods;
-  for (const auto m: hf::get_all_modules()){
-    available_mods.push_back(m);
-  }
-  std::vector<size_t> counts(available_mods.size());
+  std::vector<module> available_mods = hf::get_all_modules();
+  std::vector<size_t> in_out_counts(available_mods.size());
   Bounds b;
   std::vector<module> req;
   parse_opts(argc, argv, b, req);
@@ -53,17 +50,18 @@ int execopt(int argc, char** argv){
         [&m](module &m2){return m2.name==m.name;}
         );
     if (it != end){
-      counts[it-begin]++;
+      in_out_counts[it-begin]++;
     }
   }
   SolveOptions opts;
   opts.include_hull=true;
   std::cout<<"Bounds:"<<std::endl<<b<<std::endl;
-  SOLVECODE retcode = solve(counts, available_mods, b, req, opts );
+  SOLVECODE retcode = solve(in_out_counts, available_mods, b, opts );
   switch (retcode){
-    case hf::OK: {output_sol(counts, available_mods);return 0;}
-    case hf::ERR_INFEASIBLE:{ std::cout<<"Infeasible"<<std::endl; return 1;}
-    case hf::ERR_INTERNAL:{ std::cout<<"Internal hf library error!"<<std::endl; return 1;}
+    case hf::OK: {output_sol(in_out_counts, available_mods);return 0;}
+    case hf::ERR_INFEASIBLE:{ std::cout<<"Infeasible"<<std::endl; return -1;}
+    case hf::ERR_INTERNAL:{ std::cout<<"Internal hf library error!"<<std::endl; return -1;}
+    case hf::ERR_INVARG:{ std::cout<<"Invalid arg passed in: Counts!=#mods"<<std::endl; return -1;}
   }
   return 0;
 }
