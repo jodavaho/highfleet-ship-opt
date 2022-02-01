@@ -16,9 +16,9 @@ extern "C" {
   static PyObject * get_module_names(PyObject *self, PyObject *args)
   {
     std::vector<hf::module> vec = hf::get_all_modules();
-    PyObject* module_name_list = PyList_New(hf::num_modules);
-    assert(hf::num_modules==vec.size());
-    for (size_t i=0;i<hf::num_modules;i++){
+    PyObject* module_name_list = PyList_New(hf::num_modules());
+    assert(hf::num_modules()==vec.size());
+    for (size_t i=0;i<hf::num_modules();i++){
       Py_ssize_t idx(i);
       hf::module mod = vec[i];
       PyObject * name = PyUnicode_FromString(mod.name.c_str());
@@ -35,7 +35,7 @@ extern "C" {
     if (!PyArg_ParseTuple(args, "siii", &req_mod_str, &b.range_min, &b.spd_min, &b.twr_min))
         return NULL;
     const std::vector<hf::module> all_modules = hf::get_all_modules();
-    std::vector<size_t> optimized_counts(hf::num_modules);//populate from minimums
+    std::vector<size_t> optimized_counts(hf::num_modules());//populate from minimums
     auto retcode = solve(optimized_counts,all_modules,b,o); 
     (void)retcode;
     Py_RETURN_NONE;
@@ -69,7 +69,7 @@ extern "C" {
 
   PyObject* solve_fill_ctypes(int num_req_mods, char** req_mod_names, int* req_mod_counts, hf::Bounds bounds, hf::SolveOptions opts)
   {
-    assert(num_req_mods == hf::num_modules);
+    assert(num_req_mods == hf::num_modules());
     std::vector<hf::module> reqs;
     std::vector<size_t> counts;
     std::vector<hf::module> all;

@@ -36,7 +36,7 @@ hf::SOLVECODE hf::solve(
   if (in_out_counts.size()!=mods.size()){
     return  ERR_INVARG;
   }
-  size_t N = hf::num_modules;
+  size_t N = hf::num_modules();
   std::vector<SCIP_VAR*> vars(N);
   std::vector<SCIP_EXPR*> ex_vars(N);
   std::vector<SCIP_EXPR**> other_expr;

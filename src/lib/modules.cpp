@@ -95,6 +95,7 @@ namespace hf{
 
   const ModuleSet all_modules = create_all_mods();
   const std::vector<module> vec_modules(all_modules.begin(), all_modules.end());
+  const size_t num_modules(){ return all_modules.size(); }
 
   const std::vector<module> get_all_modules()
   {
@@ -110,7 +111,6 @@ namespace hf{
     }
     return {};
   }
-
 
   std::optional<module> module::get_hull() const
   {

@@ -17,7 +17,7 @@ DEPS:=.deps/$(TARGET)/lib
 LIBA:=-L$(DEPS) -Lbuild/$(TARGET)  -lz -lgmp
 
 # Build flags
-CXXFLAGS:= -I$(SRCD) -std=c++2a -I$(INCS) -DNO_CONFIG_HEADER -Wall -Werror -Wpedantic
+CXXFLAGS:= -g -I$(SRCD) -std=c++2a -I$(INCS) -DNO_CONFIG_HEADER -Wall -Werror -Wpedantic
 
 # libhf.so outputs
 LIBSRC  := $(wildcard $(SRCD)/lib/*.cpp)

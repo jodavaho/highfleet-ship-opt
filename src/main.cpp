@@ -37,20 +37,16 @@ void output_sol(std::vector<size_t> counts, std::vector<module> modules){
 
 int execopt(int argc, char** argv){
   std::vector<module> available_mods = hf::get_all_modules();
-  std::vector<size_t> in_out_counts(available_mods.size());
+  assert(available_mods.size() == hf::num_modules());
+  std::vector<size_t> in_out_counts(hf::num_modules(),0);
   Bounds b;
   std::vector<module> req;
   parse_opts(argc, argv, b, req);
-  auto begin = available_mods.begin();
-  auto end = available_mods.end();
   for (auto m: req){
-    auto it = std::find_if(
-        available_mods.begin(),
-        available_mods.end(),
-        [&m](module &m2){return m2.name==m.name;}
-        );
-    if (it != end){
-      in_out_counts[it-begin]++;
+    for (size_t idx=0;idx<hf::num_modules();idx++){
+      if (available_mods[idx].name == m.name){
+        in_out_counts[idx]++;
+      }
     }
   }
   SolveOptions opts;
