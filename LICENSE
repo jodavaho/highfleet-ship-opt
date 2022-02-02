@@ -22,11 +22,11 @@ SOFTWARE.
 
 ---
 
-This project makes use of the following libraries, which must be present to
-execute the program and build the libraries:
+This project makes use of the following libraries, which must be installed on
+the system to build and execute the program:
 
 SCIP
 
 SCIP is distributed under the ZIB Academic License. You are allowed to retrieve
 SCIP for research purposes as a member of a non-commercial or academic
-institution.  See 'academic.txt'.
+institution.  See 'academic.txt' for the full license. 
