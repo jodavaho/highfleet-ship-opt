@@ -898,6 +898,8 @@ hf::SOLVECODE hf::solve(
 
 std::ostream& operator<<(std::ostream& os, const hf::Bounds&b){
   os<<"Range =["<<b.range_min<<","<<b.range_max<<"]";
+  os<<"Speed =["<<b.spd_min<<","<<b.spd_max<<"]";
+  os<<"TWR =["<<b.twr_min<<","<<b.twr_max<<"]";
   return os;
 }
 
