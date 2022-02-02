@@ -25,7 +25,11 @@ SOFTWARE.
 This project makes use of the following libraries in an unmodified form, which
 must be installed on the system to execute the program:
 
-SCIP
+SCIP 8.0
+
+Bestuzheva, K., Besançon, M., Chen, W.K., Chmiela, A., Donkiewicz, T., van
+Doornmalen, J., Eifler, L., Gaul, O., Gamrath, G., Gleixner, A. and Gottwald,
+L., 2021. The SCIP Optimization Suite 8.0. arXiv preprint arXiv:2112.08872.
 
 SCIP is distributed under the ZIB Academic License. You are allowed to retrieve
 SCIP for research purposes as a member of a non-commercial or academic
