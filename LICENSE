@@ -19,3 +19,14 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+This project makes use of the following libraries, which must be present to
+execute the program and build the libraries:
+
+SCIP
+
+SCIP is distributed under the ZIB Academic License. You are allowed to retrieve
+SCIP for research purposes as a member of a non-commercial or academic
+institution.  See 'academic.txt'.
