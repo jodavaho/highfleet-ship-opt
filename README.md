@@ -1,31 +1,30 @@
-# Build-Depends
+#Build-Depends
 
-- SCIP is at: `https://www.scipopt.org/download.php?fname=SCIPOptSuite-8.0.0-Linux-ubuntu.deb`
-- installed like this: `sudo apt install ./SCIPOptSuite-8.0.0-Linux-ubuntu.deb  --fix-broken`
+## hfopt (main executable)
 
-# Scip binaries depend on:
-
-- libgmp-dev
-- libreadline-dev
-
-So an easy build includes those. You can use buildflags to disable those, however.
-
-we just need this: ` make scipoptlib SHARED=true`
-
-- We then use:
+- SCIP: `https://www.scipopt.org/download.php?fname=SCIPOptSuite-8.0.0-Linux-ubuntu.deb`
+  - installed like this: `sudo apt install ./SCIPOptSuite-8.0.0-Linux-ubuntu.deb  --fix-broken`
+  - If you wish to build this repo and SCIP from source, we just need this: ` make scipoptlib SHARED=true`
+- Then:
 
 ```
 cp scip/lib/shared/libscip.so $(DEPS)
 cp scip/lib/static/libscip.a $(DEPS)
 ```
+with `$(DEPS)=.deps/x86_64-linux-gnu/lib/`.
 
-with `$(DEPS)=.deps/x86_64-linux-gnu/lib/`, with make install INSTALLDIR=.deps/$(TARGET) or something
+## Python wrappers
 
-# For python wrappers (make python)
+- For the python wrappers install (on ubuntu/wsl) `libpython3.8-dev`
 
-- libpython3.8-dev
+`make python`
 
-# For windows (make windows)
+# For windows 
 
-- g++-mingw*
 
+- `g++-mingw*`
+
+`make windows`
+
+# License
+Since we do not copy, modify, or redistribute SCIP, all code in this repo is under the MIT License

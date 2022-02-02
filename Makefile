@@ -39,6 +39,10 @@ PYLIB := $(PYOBJD)/hfopt_lib.cpython-38-$(TARGET).so
 all: $(OBJD) $(EXE) $(LIB) $(PYLIB)
 
 # Main executable with static linkeage
+python: $(PYLIB)
+
+hfopt: $(EXE)
+
 $(EXE): $(MAIN) $(SLIB) $(SCIPOBJ)
 	$(CXX) $(CXXFLAGS) $^ $(SLIB) -o $@ $(LIBA) 
 
@@ -64,7 +68,7 @@ $(SCIPOBJ):
 
 # To build python library, link in libhf.so and build the thing from src/py/*
 # Not sure if libhf.a or libhf.so will work ... testing
-$(PYLIB): $(SLIB) src/py/opt.py $(PYSRC) build_py.py
+$(PYLIB): $(LIB) $(SLIB) src/py/opt.py $(PYSRC) build_py.py
 	cp $(LIB) $(DEPS)/
 	cp $(SLIB) $(DEPS)/
 	python3 build_py.py build  -j4 
