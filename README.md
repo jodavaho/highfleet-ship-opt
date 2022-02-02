@@ -1,4 +1,16 @@
-#Build-Depends
+# Highfleet ship optimizer
+
+This codebase selects modules from the game Highfleet, such that desired
+in-game statistics are satisfied. It does so optimally and fast, using
+state-of-the-art solver library SCIP.
+
+This library contains 3 things:
+
+1. The solver wrapper (`make lib`)
+2. A CLI application (`make hfopt`)
+3. Python wrappers (`make python` for a Flask deployment as a webservice)
+
+# Build-Depends
 
 ## hfopt (main executable)
 
@@ -19,12 +31,16 @@ with `$(DEPS)=.deps/x86_64-linux-gnu/lib/`.
 
 `make python`
 
-# For windows 
-
+## For windows 
 
 - `g++-mingw*`
 
 `make windows`
 
 # License
-Since we do not copy, modify, or redistribute SCIP, all code in this repo is under the MIT License
+
+Since we do not copy, modify, or redistribute SCIP, all code in this repo is under the MIT License. See LICENSE.
+
+# Todos
+
+1. Add minimum fuel to allow tanker optmizations
