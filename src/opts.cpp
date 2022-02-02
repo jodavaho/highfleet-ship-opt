@@ -49,10 +49,11 @@ bool parse_opts(int argc, char** argv, Bounds& out_bounds, SolveOptions & out_op
   }
   for (int i=optind;i<argc;i++)
   {
-    if (hf::PARSE_OK!=hf_from_argc(1,&argv[i],out_bounds,out_opts,out_modules))
-    {
-        std::cerr<<"Unrecognized argument: "<<argv[i]<<std::endl;
-        return false;
+    switch (hf::parse::from_argc(1,&argv[i],out_bounds,out_opts,out_modules)){
+      case hf::parse::OK:{continue;}
+      case hf::parse::INVKVARG: { std::cerr<<"Unrecognized key-value argument: "<<argv[i]<<std::endl; return false; }
+      case hf::parse::INVKARG:{ std::cerr<<"Unrecognized key-value argument: "<<argv[i]<<std::endl; return false;} 
+
     }
   }
   return true;

@@ -5,13 +5,16 @@
 
 namespace hf
 {
-  enum PARSECODE{
-    PARSE_OK=0,
-    PARSE_INVARG,
-  };
+  namespace parse{
+    enum RETCODE{
+      OK=0,
+      INVKARG,
+      INVKVARG,
+    };
 
-  PARSECODE hf_from_argc(const int argc, char** argv, hf::Bounds &bounds, hf::SolveOptions &opts,std::vector<module> &out_modules);
+    RETCODE from_argc(const int argc, char** argv, hf::Bounds &bounds, hf::SolveOptions &opts,std::vector<module> &out_modules);
 
+  }
 }
 
 #endif
