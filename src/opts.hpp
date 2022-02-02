@@ -15,6 +15,7 @@ std::string get_help();
 bool parse_opts(
     int argc, char** argv, 
     struct Bounds& out_bounds, 
+    struct SolveOptions&  out_opts,
     std::vector<struct module> & out_modules
     );
 

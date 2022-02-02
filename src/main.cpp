@@ -41,7 +41,8 @@ int execopt(int argc, char** argv){
   std::vector<size_t> in_out_counts(hf::num_modules(),0);
   Bounds b;
   std::vector<module> req;
-  parse_opts(argc, argv, b, req);
+  SolveOptions opts;
+  parse_opts(argc, argv, b, opts,req);
   for (auto m: req){
     for (size_t idx=0;idx<hf::num_modules();idx++){
       if (available_mods[idx].name == m.name){
@@ -49,7 +50,6 @@ int execopt(int argc, char** argv){
       }
     }
   }
-  SolveOptions opts;
   opts.include_hull=true;
   std::cout<<"Bounds:"<<std::endl<<b<<std::endl;
   SOLVECODE retcode = solve(in_out_counts, available_mods, b, opts );

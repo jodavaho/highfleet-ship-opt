@@ -36,12 +36,14 @@ PYOBJD := build/lib.linux-$(ARCH)-3.8
 PYSRC := $(wildcard $(PYSRCD)/*.cpp)
 PYLIB := $(PYOBJD)/hfopt_lib.cpython-38-$(TARGET).so
 
-all: $(OBJD) $(EXE) $(LIB) $(PYLIB)
+all: $(OBJD) hfopt lib python
 
 # Main executable with static linkeage
 python: $(PYLIB)
 
 hfopt: $(EXE)
+
+lib: $(LIB)
 
 $(EXE): $(MAIN) $(SLIB) $(SCIPOBJ)
 	$(CXX) $(CXXFLAGS) $^ $(SLIB) -o $@ $(LIBA) 
