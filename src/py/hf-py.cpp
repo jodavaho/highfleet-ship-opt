@@ -32,11 +32,12 @@ extern "C" {
     //https://docs.python.org/3/c-api/list.html
     //https://docs.python.org/3/c-api/tuple.html
     //https://docs.python.org/3/c-api/dict.html
-    PyObject * mod_counts; 
+    PyObject * mod_counts;
     hf::Bounds b;
     hf::SolveOptions o;
     if (!PyArg_ParseTuple(args, "Offf", &mod_counts, &b.range_min, &b.spd_min, &b.twr_min))
         return NULL;
+    Py_INCREF(mod_counts);
     const std::vector<hf::module> all_modules = hf::get_all_modules();
     std::vector<size_t> optimized_counts(hf::num_modules());//populate from minimums
 
@@ -104,19 +105,21 @@ extern "C" {
     Py_RETURN_NONE;
   }
 
+  //TODO change these to METH_FASTCALL with only positional arges (accepting a
+  //C array of PyObject*)
   static PyMethodDef hfopt_methods[] = {
     {"solve_fill",  solve_fill, METH_VARARGS, "Solve a 'fill' problem given some modules and design constraints."},
-    {"print_version",  print_version, METH_VARARGS, "Print version"},
-    {"get_module_names",  get_module_names, METH_VARARGS, "Print version"},
+    {"print_version",  print_version, METH_VARARGS, "Print version of underlying library"},
+    {"get_module_names",  get_module_names, METH_VARARGS, "Get supported module names"},
     {"version",  version, METH_VARARGS, "Print version"},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 
   };
 
   static struct PyModuleDef hfopt_module= {
-    PyModuleDef_HEAD_INIT,
+    PyModuleDef_HEAD_INIT, //Always initialize this member to PyModuleDef_HEAD_INIT.
     "hfopt_lib",  
-    "A HF Ship Optimization module. See jodavaho.io/highfleet", 
+    PyDoc_STR("A HF Ship Optimization module. See jodavaho.io/highfleet"),
     -1,      
     hfopt_methods
   };
@@ -124,42 +127,6 @@ extern "C" {
   PyMODINIT_FUNC PyInit_hfopt_lib(void){
     return PyModule_Create(&hfopt_module);
   }
-
-  PyObject* solve_fill_ctypes(int num_req_mods, char** req_mod_names, int* req_mod_counts, hf::Bounds bounds, hf::SolveOptions opts)
-  {
-    assert(num_req_mods == hf::num_modules());
-    std::vector<hf::module> reqs;
-    std::vector<size_t> counts;
-    std::vector<hf::module> all;
-
-    for (auto m: hf::get_all_modules()){
-      all.push_back(m);
-    }
-
-    for (int i=0;i<num_req_mods;i++){
-      char* name = req_mod_names[i];
-      //int count = req_mod_counts[i]; 
-      auto modp = hf::by_name(name);
-      if (!modp){
-        return nullptr;
-      }
-      reqs.push_back(*modp);
-    }
-    hf::SOLVECODE c = solve(counts, all, bounds, reqs, opts);
-    if (c == hf::OK){
-      PyObject* py_dict = PyDict_New();
-      assert(py_dict);
-      for (size_t i=0;i<counts.size();i ++){
-        PyDict_SetItem(py_dict,
-            PyUnicode_FromString(req_mod_names[i]),
-            Py_BuildValue("l",counts[i])
-            );
-      }
-      return py_dict;
-    }
-    return nullptr;
-  }
-
 
 #ifdef __cplusplus
 }
