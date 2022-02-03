@@ -1,5 +1,6 @@
 import hf.hfopt_lib
 
+
 def version():
   return hf.hfopt_lib.version() 
 
@@ -8,19 +9,22 @@ def module_names():
 
 def example():
   d= Design()
-  print("How many included by default?")
-  print(d.modules)
+  print("Create something like a Lightning")
   # Set a module requirement for 2 ak100s
   d.modules["gun_ak100"]=2
   # and minimum range:
-  d.min_range=1000
+  d.min_range=800
   # and make if faster
-  d.min_spd = 350
+  d.min_spd=600
+  d.dump_modules()
+  d.dump_constraints()
   d.fill_constraints()
   # Now we have a filled module list
-  print(d.modules)
+  print("Post-solve:")
+  d.dump_modules()
 
 class Design:
+
   def __init__(self):
     self.min_range   =0
     self.min_twr     =1
@@ -28,6 +32,15 @@ class Design:
     self.modules     ={x:0  for x in module_names()}
     pass
 
+  def dump_modules(self):
+    for mc in self.modules.keys():
+        if self.modules[mc] > 0:
+            print("{}={}".format(mc,self.modules[mc]))
+
+  def dump_constraints(self):
+      print('min_range={}'.format(self.min_range))
+      print('min_spd={}'.format(self.min_spd))
+      print('min_twr={}'.format(self.min_twr))
   def set_min_range(self,r):
     self.min_range = r
 
@@ -52,4 +65,8 @@ class Design:
     any required modules (set_req) or constraints (set_min_X), then it will
     return a trivial empty solution.
     """
-    pass
+    self.modules = hf.hfopt_lib.solve_fill(
+            self.modules, 
+            self.min_range,
+            self.min_spd,
+            self.min_twr)
