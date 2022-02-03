@@ -41,21 +41,27 @@ extern "C" {
     std::vector<size_t> optimized_counts(hf::num_modules());//populate from minimums
 
     //extract all modules from the dictionary
-    for (const auto &m: all_modules){
+    for (size_t idx =0;idx<hf::num_modules();idx++){
+      const auto &m=all_modules[idx];
       PyObject* name_str = PyUnicode_FromString(m.name.c_str());
       if (! PyUnicode_Check(name_str)){
-        //oops
+        std::cerr<<"PyUnicodeError parsing string from: "<<m.name<<std::endl;
+        continue;
       }
       //I long for match statements
+      //see if they sent us a required count for this module
       switch(PyDict_Contains(mod_counts,name_str)){
         case (1):{//Contains
                    PyObject*item= PyDict_GetItem(mod_counts,name_str);
                    if (!PyLong_Check(item)){
-                     //oops
+                     std::cerr<<"PyLongError parsing count for "<<m.name.c_str()<<std::endl;
+                     continue;
                    }
+                   optimized_counts[idx]=PyLong_AsLong(item);
                    break;
                  }
         case(0):{//!Contains
+                  optimized_counts[idx]=0;
                   break;
                 }
         case(-1):{//Error
@@ -67,8 +73,30 @@ extern "C" {
       }
     }
     auto retcode = solve(optimized_counts,all_modules,b,o); 
-    (void)retcode;
-    Py_RETURN_NONE;
+    if (retcode==hf::ERR_INFEASIBLE){
+      std::cerr<<"Problem appears infeasible!"<<std::endl;
+      return nullptr;
+    }
+    //repopulate their counters
+    for (size_t idx=0;idx<hf::num_modules();idx++){
+      const auto &m = all_modules[idx];
+      PyObject* name_str=PyUnicode_FromString(m.name.c_str());
+      if (! PyUnicode_Check(name_str)){
+        //we warned above
+        continue;
+      }
+      PyObject* count = PyLong_FromLong(optimized_counts[idx]);
+      if (!count | !PyLong_Check(count)){
+        std::cerr<<"Unable to parse long from: "<<optimized_counts[idx]<<std::endl;
+        continue;
+      }
+      switch(PyDict_SetItem(mod_counts,name_str,count)){
+        case 0:{break;}
+        case -1:{std::cerr<<"Unable to insert "<<count<<" into "<<mod_counts<<std::endl;
+                  continue;}
+      }
+    }
+    return mod_counts;
   }
 
   static PyObject* print_version(PyObject* self, PyObject* args){
