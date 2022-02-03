@@ -29,13 +29,43 @@ extern "C" {
 
   static PyObject * solve_fill(PyObject *self, PyObject *args)
   {
-    char* req_mod_str; 
+    //https://docs.python.org/3/c-api/list.html
+    //https://docs.python.org/3/c-api/tuple.html
+    //https://docs.python.org/3/c-api/dict.html
+    PyObject * mod_counts; 
     hf::Bounds b;
     hf::SolveOptions o;
-    if (!PyArg_ParseTuple(args, "siii", &req_mod_str, &b.range_min, &b.spd_min, &b.twr_min))
+    if (!PyArg_ParseTuple(args, "Offf", &mod_counts, &b.range_min, &b.spd_min, &b.twr_min))
         return NULL;
     const std::vector<hf::module> all_modules = hf::get_all_modules();
     std::vector<size_t> optimized_counts(hf::num_modules());//populate from minimums
+
+    //extract all modules from the dictionary
+    for (const auto &m: all_modules){
+      PyObject* name_str = PyUnicode_FromString(m.name.c_str());
+      if (! PyUnicode_Check(name_str)){
+        //oops
+      }
+      //I long for match statements
+      switch(PyDict_Contains(mod_counts,name_str)){
+        case (1):{//Contains
+                   PyObject*item= PyDict_GetItem(mod_counts,name_str);
+                   if (!PyLong_Check(item)){
+                     //oops
+                   }
+                   break;
+                 }
+        case(0):{//!Contains
+                  break;
+                }
+        case(-1):{//Error
+                   break;
+                 }
+        default:{//wtf
+                  break;
+                }
+      }
+    }
     auto retcode = solve(optimized_counts,all_modules,b,o); 
     (void)retcode;
     Py_RETURN_NONE;

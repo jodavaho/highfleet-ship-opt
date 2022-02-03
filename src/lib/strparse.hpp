@@ -10,6 +10,8 @@ namespace hf
       OK=0,
       INVKARG,
       INVKVARG,
+      INVMODNAME,
+      BADARGV
     };
 
     RETCODE from_argc(const int argc, char** argv, hf::Bounds &bounds, hf::SolveOptions &opts,std::vector<module> &out_modules);

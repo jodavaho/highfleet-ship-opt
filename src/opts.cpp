@@ -56,6 +56,8 @@ bool parse_opts(int argc, char** argv, Bounds& out_bounds, SolveOptions & out_op
       case hf::parse::OK:{continue;}
       case hf::parse::INVKVARG: { std::cerr<<"Unrecognized key-value argument: "<<argv[i]<<std::endl; return false; }
       case hf::parse::INVKARG:{ std::cerr<<"Unrecognized key-value argument: "<<argv[i]<<std::endl; return false;} 
+      case hf::parse::INVMODNAME:{ std::cerr<<"Unrecognized mod name: "<<argv[i]<<std::endl; return false;} 
+      case hf::parse::BADARGV:{ std::cerr<<"Unparseable string: "<<argv[i]<<std::endl; return false;}
 
     }
   }
