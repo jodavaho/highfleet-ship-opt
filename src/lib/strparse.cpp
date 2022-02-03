@@ -21,11 +21,11 @@ namespace hf{
             for (size_t i=0;i<count;i++){
               out_modules.push_back(*m);
             }//count==0 falls through, and is not OK
-          } else if (name=="range_min"){
+          } else if (name=="range_min" || name=="range"){
             bounds.range_min=std::atof(val.c_str());
-          } else if (name=="twr_min"){
+          } else if (name=="twr_min" || name=="twr"){
             bounds.twr_min=std::atof(val.c_str());
-          } else if (name=="spd_min"){
+          } else if (name=="spd_min" || name=="spd"){
             bounds.spd_min=std::atof(val.c_str());
           } else if (argval=="quiet"){
             opts.quiet = (bool) std::atoi(val.c_str());
@@ -38,6 +38,8 @@ namespace hf{
             out_modules.push_back(*m);
           } else if (argval=="ignore_hull") {
             opts.include_hull=false;  
+          } else if (argval=="quiet"){
+            opts.quiet = true;
           } else {
             return INVKARG;
           }

@@ -26,10 +26,13 @@ bool parse_opts(int argc, char** argv, Bounds& out_bounds, SolveOptions & out_op
   static struct option long_opts[] = 
   {
     {"range_min", required_argument, 0, RANGE_MIN},
+    {"range", required_argument, 0, RANGE_MIN},
     {"twr_min", required_argument, 0, TWR_MIN},
+    {"twr", required_argument, 0, TWR_MIN},
+    {"speed_min", required_argument, 0, SPD_MIN},
+    {"speed", required_argument, 0, SPD_MIN},
     {"wt_min", required_argument, 0, WT_MIN},
     {"wt_max", required_argument, 0, WT_MAX},
-    {"speed_min", required_argument, 0, SPD_MIN},
     {0,0,0,0}
   };
 
