@@ -1,8 +1,10 @@
 import hf.hfopt_lib
 
-
 def version():
   return hf.hfopt_lib.version() 
+
+def is_module(name):
+  return hf.hfopt_lib.is_module(name)
 
 def module_names():
   return hf.hfopt_lib.get_module_names()
@@ -10,17 +12,22 @@ def module_names():
 def example():
   d= Design()
   print("Create something like a Lightning")
-  # Set a module requirement for 2 ak100s
-  d.modules["gun_ak100"]=2
+  # Set a module requirement for 2 ak100s and some safety equipment
+  d.require("100mm",2)
+  d.require("pod",2)
+  d.require("fss",2)
+  # and landing gear b/c we're not a savage
+  d.require("chassis_m",4)
   # and minimum range:
-  d.min_range=800
-  # and make if faster
-  d.min_spd=600
+  d.set_min_range(800)
+  # and make it fast
+  d.set_min_spd(650)
   d.dump_modules()
   d.dump_constraints()
   d.fill_constraints()
   # Now we have a filled module list
-  print("Post-solve:")
+  print("============================")
+  print("Here's the list of modules: ")
   d.dump_modules()
 
 class Design:
@@ -29,8 +36,12 @@ class Design:
     self.min_range   =0
     self.min_twr     =1
     self.min_spd     =0
-    self.modules     ={x:0  for x in module_names()}
+    self.modules     ={}
     pass
+
+  def require(self, name, count):
+    if is_module(name):
+      self.modules[name]=count
 
   def dump_modules(self):
     for mc in self.modules.keys():
@@ -41,6 +52,7 @@ class Design:
       print('min_range={}'.format(self.min_range))
       print('min_spd={}'.format(self.min_spd))
       print('min_twr={}'.format(self.min_twr))
+
   def set_min_range(self,r):
     self.min_range = r
 
