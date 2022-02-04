@@ -42,7 +42,10 @@ int execopt(int argc, char** argv){
   Bounds b;
   std::vector<module> req;
   SolveOptions opts;
-  parse_opts(argc, argv, b, opts,req);
+  if (!parse_opts(argc, argv, b, opts, req)){
+    std::cerr<<"Cannot parse arguments. Try -h "<<std::endl;
+    return -1;
+  }
   for (auto m: req){
     for (size_t idx=0;idx<hf::num_modules();idx++){
       if (available_mods[idx].name == m.name){
@@ -54,7 +57,10 @@ int execopt(int argc, char** argv){
   std::cout<<"Bounds:"<<std::endl<<b<<std::endl;
   SOLVECODE retcode = solve(in_out_counts, available_mods, b, opts );
   switch (retcode){
-    case hf::OK: {output_sol(in_out_counts, available_mods);return 0;}
+    case hf::OK: {
+                   std::cout<<"Solve successful!"<<std::endl;
+                   output_sol(in_out_counts, available_mods);
+                   return 0;}
     case hf::ERR_INFEASIBLE:{ std::cout<<"Infeasible"<<std::endl; return -1;}
     case hf::ERR_INTERNAL:{ std::cout<<"Internal hf library error!"<<std::endl; return -1;}
     case hf::ERR_INVARG:{ std::cout<<"Invalid arg passed in: Counts!=#mods"<<std::endl; return -1;}
@@ -96,11 +102,12 @@ int main(int argc, char** argv){
     for (auto m: hf::get_all_modules()){
       std::cout<<m<<std::endl;
     }
+    std::cout<<"Also support the following aliases:"<<std::endl;
     return 0;
   }
   if (argc>2 && strcmp(argv[1],"memtest")==0){
     for (int i=0;i<10;i++){
-      execopt(argc-1,&argv[1]);
+      execopt(argc-2,&argv[2]);
     }
     return 0;
   }

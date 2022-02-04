@@ -4,6 +4,7 @@
 #include <string>
 #include <optional>
 #include <sstream>
+#include <unordered_map>
 
 using hf::module;
 
@@ -32,6 +33,22 @@ namespace module_helpers{
 }
 
 namespace hf{
+
+  static const std::unordered_map<std::string, std::string> aliases =
+  {
+    {"pod","sk_2m"},
+    {"escape_pod","sk_2m"},
+    {"fss","ec13"},
+    {"mars","irst"},
+    {"fcr_l","mr_12"},
+    {"fcr_s","mr_2m"},
+    {"sr_l","mr_700"},
+    {"sr_s","mr_500"},
+    {"elint_l","mp_21"},
+    {"elint_s","mp_12"},
+  };
+
+
   static ModuleSet create_all_mods(){
     ModuleSet ret;
     ret.insert({"bridge",             2,  2,  4,   25,     100,  0,      0,      60,   0,    0,     0,     0,   0,   0,      module::EXTERIOR});
@@ -104,13 +121,26 @@ namespace hf{
 
   std::optional<const module> by_name(std::string des)
   {
-    module dummy{.name=des};
+    std::string lname;
+    //might be a "slang name"
+    auto name_itr = aliases.find(des);
+    if (name_itr !=aliases.end()){
+      //get "real" name
+      lname = name_itr->second;
+    } else {
+      //assume this *is* the "real" name
+      lname = des;
+    }
+    //got a name, perhaps not one we know ... 
+    module dummy{.name=lname};
     auto it = all_modules.find(dummy);
     if (it!=all_modules.end()){
       return *it;
     }
+    //couldn't find module by that name
     return {};
   }
+
 
   std::optional<module> module::get_hull() const
   {
