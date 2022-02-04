@@ -58,8 +58,6 @@ extern "C" {
     if (!PyArg_ParseTuple(args, "Oddd", &mod_counts, &b.range_min, &b.spd_min, &b.twr_min))
         return NULL;
 
-    std::cout<<b<<std::endl;
-
     if (!PyDict_Check(mod_counts)){
       std::cerr<<"Did not get module_list as dictionary! Fatal."<<std::endl;
       return nullptr;
