@@ -4,7 +4,7 @@
 #include <string>
 #include <optional>
 #include <sstream>
-#include <unordered_map>
+#include <map>
 
 using hf::module;
 
@@ -34,7 +34,7 @@ namespace module_helpers{
 
 namespace hf{
 
-  static const std::unordered_map<std::string, std::string> aliases =
+  static const std::map<std::string, std::string> aliases =
   {
     {"pod","sk_2m"},
     {"escape_pod","sk_2m"},
@@ -51,8 +51,31 @@ namespace hf{
     {"elint_l","mp_21"},
     {"elint","mp_21"},
     {"elint_s","mp_12"},
+
+    {"37mm","gun_2a37"},
+    {"2a37","gun_2a37"},
+
+    {"57mm","gun_ak725"},
+    {"ak725","gun_ak725"},
+
+    {"100mm","gun_ak100"},
+    {"ak100","gun_ak100"},
+
+    {"130mm","gun_d80"},
+    {"d80","gun_d80"},
+    {"molot","gun_d80"},
+
+    {"180mm","gun_1x180"},
+    {"mk1","gun_1x180"},
+    {"2x180mm","gun_2x180"},
+    {"mk2","gun_2x180"},
+    {"6x180mm","gun_6x180"},
+    {"mk6","gun_6x180"},
   };
 
+  const std::map<std::string, std::string>& get_aliases(){
+    return aliases;
+  }
 
   static ModuleSet create_all_mods(){
     ModuleSet ret;

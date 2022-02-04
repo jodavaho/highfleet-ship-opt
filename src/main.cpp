@@ -103,6 +103,9 @@ int main(int argc, char** argv){
       std::cout<<m<<std::endl;
     }
     std::cout<<"Also support the following aliases:"<<std::endl;
+    for (const auto &m: hf::get_aliases()){
+      std::cout<<m.first<<" is equivalent to "<<m.second<<std::endl;
+    }
     return 0;
   }
   if (argc>2 && strcmp(argv[1],"memtest")==0){

@@ -5,6 +5,7 @@
 #include <optional>
 #include <vector>
 #include <set>
+#include <map>
 
 namespace hf{
 
@@ -60,6 +61,7 @@ namespace hf{
   const ModuleSet get_module_set();
   const std::vector<module> get_all_modules();
   const size_t num_modules();
+  const std::map<std::string, std::string>& get_aliases();
 
 }
 
