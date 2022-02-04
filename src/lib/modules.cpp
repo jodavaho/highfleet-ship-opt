@@ -41,10 +41,15 @@ namespace hf{
     {"fss","ec13"},
     {"mars","irst"},
     {"fcr_l","mr_12"},
+    {"fcr","mr_12"},
     {"fcr_s","mr_2m"},
     {"sr_l","mr_700"},
+    {"radar_l","mr_700"},
+    {"radar","mr_700"},
     {"sr_s","mr_500"},
+    {"radar_s","mr_500"},
     {"elint_l","mp_21"},
+    {"elint","mp_21"},
     {"elint_s","mp_12"},
   };
 

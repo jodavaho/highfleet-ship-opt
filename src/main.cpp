@@ -90,7 +90,7 @@ void print_help(int argc, char**argv){
   std::cout<<argv[0]<<" fill [bounds] [<module_tag>=<#>] "<<std::endl<<std::endl;
   std::cout<<" examples: "<<std::endl<<std::endl;
   std::cout<<" Generate something like the Lightning: "<<std::endl;
-  std::cout<<argv[0]<<" fill --range_min=800 --speed_min=600 gun_ak100=2 "<<std::endl;
+  std::cout<<argv[0]<<" fill --range_min=800 --speed_min=600 gun_ak100=2 fss=2 chassis_m=4 pod=2"<<std::endl;
 }
 
 int main(int argc, char** argv){
