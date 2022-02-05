@@ -45,10 +45,6 @@ namespace hf{
 
 
   //define useful datastructure with name-based comparator. 
-  //c++20 should allow:
-  //auto namecomp = [](const module&a, const module&b){return a.name<b.name;};
-  //using ModuleSet = std::set<module, decltype(namecomp)>;
-
   struct namecmp{
     bool operator()(module a, module b)const{
       return a.name<b.name;
@@ -61,6 +57,13 @@ namespace hf{
   const ModuleSet get_module_set();
   const std::vector<module> get_all_modules();
   const size_t num_modules();
+
+  //a mapping of common_names->canonical names.
+  //If the module X is also known as Y, then
+  //aliases[Y] returns X (the "real" name)
+  //AND therefore
+  //get_module_set()[X] == get_module_set()[ aliases[Y] ]
+  //The aliases are easier to remember, that's all. 
   const std::map<std::string, std::string>& get_aliases();
 
 }
