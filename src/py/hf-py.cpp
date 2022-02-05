@@ -129,15 +129,17 @@ extern "C" {
         std::cerr<<"Error constructing unicode string from '"<<m.name<<"'. Trying to continue ... "<<std::endl;
         continue;
       }
-      PyObject* count = PyLong_FromLong(optimized_counts[idx]);
-      if (!count | !PyLong_Check(count)){
-        std::cerr<<"Unable to parse long from: "<<optimized_counts[idx]<<std::endl;
-        continue;
-      }
-      switch(PyDict_SetItem(mod_counts,name_str,count)){
-        case 0:{break;}
-        case -1:{std::cerr<<"Unable to insert "<<count<<" into "<<mod_counts<<std::endl;
-                  continue;}
+      if (optimized_counts[idx] > 0){
+        PyObject* count = PyLong_FromLong(optimized_counts[idx]);
+        if (!count | !PyLong_Check(count)){
+          std::cerr<<"Unable to parse long from: "<<optimized_counts[idx]<<std::endl;
+          continue;
+        }
+        switch(PyDict_SetItem(mod_counts,name_str,count)){
+          case 0:{break;}
+          case -1:{std::cerr<<"Unable to insert "<<count<<" into "<<mod_counts<<std::endl;
+                    continue;}
+        }
       }
     }
     return mod_counts;
