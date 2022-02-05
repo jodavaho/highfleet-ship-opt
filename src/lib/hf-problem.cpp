@@ -26,6 +26,7 @@ hf::SOLVECODE hf::solve(
 
   SCIP* g; 
   SCIP_CHK( SCIPcreate(&g) );
+  SCIPsetMessagehdlrQuiet(g, true);
   SCIP_CHK( SCIPcreateProbBasic(g, "Highfleet_Component_Selection"));
   SCIP_CHK( SCIPincludeDefaultPlugins(g));
   SCIP_CHK( SCIPsetObjsense(g, SCIP_OBJSENSE_MINIMIZE));
