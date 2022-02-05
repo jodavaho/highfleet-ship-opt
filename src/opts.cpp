@@ -37,6 +37,7 @@ bool parse_opts(int argc, char** argv, Bounds& out_bounds, SolveOptions & out_op
   };
 
   int opt_idx;
+  optind=0; // start at 0th arg
   int ret=0;
   while(1){
     ret = getopt_long(argc,argv,"",long_opts,&opt_idx);
@@ -52,7 +53,8 @@ bool parse_opts(int argc, char** argv, Bounds& out_bounds, SolveOptions & out_op
   }
   for (int i=optind;i<argc;i++)
   {
-    switch (hf::parse::from_argc(1,&argv[i],out_bounds,out_opts,out_modules)){
+    //we expect only mods from here on out:
+    switch (hf::parse::mods_from_argc(1,&argv[i],out_modules)){
       case hf::parse::OK:{continue;}
       case hf::parse::INVKVARG: { std::cerr<<"Unrecognized key-value argument: "<<argv[i]<<std::endl; return false; }
       case hf::parse::INVKARG:{ std::cerr<<"Unrecognized key-value argument: "<<argv[i]<<std::endl; return false;} 
