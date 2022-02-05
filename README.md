@@ -44,3 +44,4 @@ Since we do not copy, modify, or redistribute SCIP, all code in this repo is und
 # Todos
 
 1. Add minimum fuel to allow tanker optmizations
+2. Add extra framing squares ( simply add constant to constraint )
