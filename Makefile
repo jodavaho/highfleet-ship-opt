@@ -1,4 +1,5 @@
 TARGET:=$(shell gcc -dumpmachine)
+
 #TODO: fix to scrape from TARGET
 ARCH:=x86_64
 
@@ -14,10 +15,11 @@ INCS:=.deps/$(TARGET)/include
 DEPS:=.deps/$(TARGET)/lib
 
 # Linking commands
-LIBA:=-L$(DEPS) -Lbuild/$(TARGET)  -lz -lgmp
+LDFLAGS:=-L$(DEPS) -Lbuild/$(TARGET)  -lz -lgmp
 
 # Build flags
 CXXFLAGS:= -g -I$(SRCD) -std=c++2a -I$(INCS) -DNO_CONFIG_HEADER -Wall -Werror -Wpedantic
+CXXFLAGS += -Wl,-z,relro -O2 -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2
 
 # libhf.so outputs
 LIBSRC  := $(wildcard $(SRCD)/lib/*.cpp)
@@ -38,19 +40,24 @@ PYLIB := $(PYOBJD)/hfopt_lib.cpython-38-$(TARGET).so
 
 all: $(OBJD) hfopt lib python
 
-# Main executable with static linkeage
+# Python bindings / library
 python: $(PYLIB)
 
+# Main executable with static linkeage
 hfopt: $(EXE)
 
+# hfopt.so
 lib: $(LIB)
 
-$(EXE): $(MAIN) $(SLIB) $(SCIPOBJ)
-	$(CXX) $(CXXFLAGS) $^ $(SLIB) -o $@ $(LIBA) 
+# hfopt.a
+static: $(SLIB)
 
-# Main library, mostly for python?
+$(EXE): $(MAIN) $(SLIB) $(SCIPOBJ)
+	$(CXX) $(CXXFLAGS) $^ $(SLIB) -o $@ $(LDFLAGS) 
+
+# Main library
 $(LIB): $(SCIPOBJ) $(LIBOBJ) 
-	$(CXX) -shared -Wl,-soname,$@ -o $@ $^ $(LIBA)
+	$(CXX) -shared -Wl,-soname,$@ -o $@ $^ $(LDFLAGS)
 
 # Static version 
 $(SLIB): $(LIBOBJ)
@@ -69,10 +76,8 @@ $(SCIPOBJ):
 	@echo "You need to build $@ ... see README.md"
 
 # To build python library, link in libhf.so and build the thing from src/py/*
-# Not sure if libhf.a or libhf.so will work ... testing
 $(PYLIB): $(LIB) $(SLIB) src/py/opt.py $(PYSRC) build_py.py
 	cp $(LIB) $(DEPS)/
-	cp $(SLIB) $(DEPS)/
 	python3 build_py.py build  -j4 
 	mkdir $(PYOBJD)/hf -p
 	cp $(PYSRCD)/*.py $(PYOBJD)/hf
