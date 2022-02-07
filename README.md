@@ -38,6 +38,10 @@ with `$(DEPS)=.deps/x86_64-linux-gnu/lib/`.
 
 ## For windows 
 
+Not currently working. 
+
+Why:
+
 - `g++-mingw*`
 
 `make windows`
