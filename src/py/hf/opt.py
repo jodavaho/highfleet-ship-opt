@@ -1,13 +1,13 @@
-import hf.hfopt_lib
+import hfopt_lib
 
 def version():
-  return hf.hfopt_lib.version() 
+  return hfopt_lib.version() 
 
 def is_module(name):
-  return hf.hfopt_lib.is_module(name)
+  return hfopt_lib.is_module(name)
 
 def module_names():
-  return hf.hfopt_lib.get_module_names()
+  return hfopt_lib.get_module_names()
 
 def example():
   d= Design()
@@ -43,7 +43,7 @@ class Module:
     self.thrust=0
 
   def __init__(self,name):
-    attrdict = hf.hfopt_lib.module_stats(name)
+    attrdict = hfopt_lib.module_stats(name)
     if (attrdict is None):
         return
     self.cost=attrdict["cost"]
@@ -100,7 +100,7 @@ class Design:
     any required modules (set_req) or constraints (set_min_X), then it will
     return a trivial empty solution.
     """
-    self.modules = hf.hfopt_lib.solve_fill(
+    self.modules = hfopt_lib.solve_fill(
             self.modules, 
             self.min_range,
             self.min_spd,

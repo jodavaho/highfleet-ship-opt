@@ -29,6 +29,9 @@ module1 = Extension('hfopt_lib', sources = [
     )
 
 setup(name = 'hfopt_lib',
-       version = '0.1.1',
+       version = '0.2.0',
        description = "HF Ship Opt.",
+       #include_package_data=True,
+       package_dir = {'': 'src/py'},
+       packages=['hf'],
        ext_modules = [module1])
