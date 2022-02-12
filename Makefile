@@ -42,6 +42,7 @@ all: $(OBJD) hfopt lib python
 
 # Python bindings / library
 python: $(PYLIB)
+	echo 'Now, you can use pip install .'
 
 # Main executable with static linkeage
 hfopt: $(EXE)
