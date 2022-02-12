@@ -14,6 +14,48 @@ extern "C" {
     return PyUnicode_FromString(hf_opt_version);
   }
 
+  static PyObject* module_stats(PyObject *self, PyObject* args){
+    PyObject* name_str;
+    if (!PyArg_ParseTuple(args, "O", &name_str)){
+        return nullptr;
+    }
+    if (!PyUnicode_Check(name_str)){
+      std::cerr<<"Need a name string! Encountered some other object!"<<std::endl;
+      return nullptr;
+    }
+    const char* cname = PyUnicode_AsUTF8(name_str);
+    const auto mp = hf::by_name(cname);
+    PyObject* attrdict = PyDict_New();
+    PyObject* cost_dbl = PyFloat_FromDouble(mp->cost);
+    if (0!=PyDict_SetItemString(attrdict,"cost",cost_dbl)){
+      std::cerr<<"error setting dictionary item!"<<std::endl;
+    }
+    if (0!=PyDict_SetItemString(attrdict,"name",name_str)){
+      std::cerr<<"error setting dictionary item!"<<std::endl;
+    }
+    PyObject* weight_dbl = PyFloat_FromDouble(mp->weight);
+    if (0!=PyDict_SetItemString(attrdict,"weight",weight_dbl)){
+      std::cerr<<"error setting dictionary item!"<<std::endl;
+    }
+    PyObject* en_dbl= PyFloat_FromDouble(mp->energy);
+    if (0!=PyDict_SetItemString(attrdict,"energy",en_dbl)){
+      std::cerr<<"error setting dictionary item!"<<std::endl;
+    }
+    PyObject* thr_dbl= PyFloat_FromDouble(mp->thrust);
+    if (0!=PyDict_SetItemString(attrdict,"thrust",thr_dbl)){
+      std::cerr<<"error setting dictionary item!"<<std::endl;
+    }
+    PyObject* crew_long= PyLong_FromLong((long)mp->crew);
+    if (0!=PyDict_SetItemString(attrdict,"crew",crew_long)){
+      std::cerr<<"error setting dictionary item!"<<std::endl;
+    }
+    PyObject* ammo_long= PyLong_FromLong((long)mp->ammo);
+    if (0!=PyDict_SetItemString(attrdict,"ammo",ammo_long)){
+      std::cerr<<"error setting dictionary item!"<<std::endl;
+    }
+    return attrdict;
+  }
+
   static PyObject* is_module(PyObject *self, PyObject* args){
     PyObject* name_str;
     if (!PyArg_ParseTuple(args, "O", &name_str)){
@@ -154,6 +196,7 @@ extern "C" {
   //C array of PyObject*)
   static PyMethodDef hfopt_methods[] = {
     {"solve_fill",  solve_fill, METH_VARARGS, "Solve a 'fill' problem given some modules and design constraints."},
+    {"module_stats", module_stats, METH_VARARGS, "Get module stats for a given name, returned as a dictionary"},
     {"print_version",  print_version, METH_VARARGS, "Print version of underlying library"},
     {"get_module_names",  get_module_names, METH_VARARGS, "Get supported module names"},
     {"is_module",  is_module, METH_VARARGS, "Check if this is a module name"},

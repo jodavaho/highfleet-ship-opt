@@ -30,6 +30,16 @@ def example():
   print("Here's the list of modules: ")
   d.dump_modules()
 
+class Module:
+  def __init__(self):
+    self.cost=0
+    self.name=""
+    self.energy=0
+    self.ammo=0
+    self.crew=0
+    self.weight=0
+    self.thrust=0
+
 class Design:
 
   def __init__(self):
