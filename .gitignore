@@ -1,4 +1,6 @@
 build/
+hfopt_lib.cpython-*.so
+*.egg*
 .local*
 .hook*
 .deps
