@@ -76,9 +76,9 @@ $(SCIPOBJ):
 	@echo "You need to build $@ ... see README.md"
 
 # To build python library, link in libhf.so and build the thing from src/py/*
-$(PYLIB): $(LIB) $(SLIB) src/py/opt.py $(PYSRC) build_py.py
+$(PYLIB): $(LIB) $(SLIB) src/py/opt.py $(PYSRC) setup.py
 	cp $(LIB) $(DEPS)/
-	python3 build_py.py build  -j4 
+	python3 setup.py build  -j4 
 	mkdir $(PYOBJD)/hf -p
 	cp $(PYSRCD)/*.py $(PYOBJD)/hf
 	mv $(PYLIB) $(PYOBJD)/hf

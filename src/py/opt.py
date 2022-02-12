@@ -30,7 +30,9 @@ def example():
   print("Here's the list of modules: ")
   d.dump_modules()
 
+
 class Module:
+
   def __init__(self):
     self.cost=0
     self.name=""
@@ -40,6 +42,18 @@ class Module:
     self.weight=0
     self.thrust=0
 
+  def __init__(self,name):
+    attrdict = hf.hfopt_lib.module_stats(name)
+    if (attrdict is None):
+        return
+    self.cost=attrdict["cost"]
+    self.name=attrdict["name"]
+    self.energy=attrdict["energy"]
+    self.ammo=attrdict["ammo"]
+    self.crew=attrdict["crew"]
+    self.weight=attrdict["weight"]
+    self.thrust=attrdict["thrust"]
+
 class Design:
 
   def __init__(self):
@@ -47,7 +61,6 @@ class Design:
     self.min_twr     =1
     self.min_spd     =0
     self.modules     ={}
-    pass
 
   def require(self, name, count):
     if is_module(name):
