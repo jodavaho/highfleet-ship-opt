@@ -1,3 +1,4 @@
 include src/py/*.py
+include src/py/*.h
 include src/lib/*.hpp
 global-exclude *.pyc
