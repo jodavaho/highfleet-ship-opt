@@ -42,7 +42,6 @@ all: $(OBJD) hfopt lib python
 
 # Python bindings / library
 python: $(PYLIB)
-	echo 'Now, you can use pip install .'
 
 # Main executable with static linkeage
 hfopt: $(EXE)
@@ -79,10 +78,10 @@ $(SCIPOBJ):
 # To build python library, link in libhf.so and build the thing from src/py/*
 $(PYLIB): $(LIB) $(SLIB) src/py/hf/opt.py $(PYSRC) setup.py
 	cp $(LIB) $(DEPS)/
-	python3 setup.py build  -j4 
+	python3 setup.py build -j4 
 	mkdir $(PYOBJD)/hf -p
 	cp $(PYSRCD)/hf/*.py $(PYOBJD)/hf
-	mv $(PYLIB) $(PYOBJD)/hf
+	cp $(PYLIB) $(PYOBJD)/hf
 
 clean:
 	rm -rf build/$(TARGET)/*
