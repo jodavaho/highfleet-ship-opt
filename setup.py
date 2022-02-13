@@ -28,10 +28,9 @@ module1 = Extension('hfopt_lib', sources = [
     extra_compile_args=['-Werror','-fPIC','-std=c++2a','-I.deps/x86_64-linux-gnu/include','-DNO_CONFIG_HEADER'],
     )
 
-setup(name = 'hfopt_lib',
+setup(name = 'hfopt',
        version = '0.2.0',
-       description = "HF Ship Opt.",
-       #include_package_data=True,
+       description = "Highfleet Ship Optimization",
        package_dir = {'': 'src/py'},
        packages=['hf'],
        ext_modules = [module1])
