@@ -114,10 +114,7 @@ Since we do not copy, modify, or redistribute SCIP, all code in this repo is und
 # Todos
 
 1. Add minimum fuel to allow tanker optmizations
-2. Add extra framing squares ( simply add constant to constraint )
-3. set up buildchain for windows 
-  - (https://flask.palletsprojects.com/en/2.0.x/tutorial/install/ )
-  - https://packaging.python.org/en/latest/tutorials/packaging-projects/
-4. Public github
-5. .deb installers
-6. PyPI
+1. Add extra framing squares ( simply add constant to constraint )
+1. .deb installers
+1. https://github.com/pypa/manylinux
+1. PyPI
