@@ -71,10 +71,12 @@ d.dump_modules()
 
 if you'd like to build the cli app, C/C++ library, or python library, we require a few things.
 
-## hfopt (main executable)
-
 - SCIP: `https://www.scipopt.org/download.php?fname=SCIPOptSuite-8.0.0-Linux-ubuntu.deb`
   - installed like this: `sudo apt install ./SCIPOptSuite-8.0.0-Linux-ubuntu.deb  --fix-broken`
+
+## hfopt (main executable)
+
+- Nothing extra
 
 ## custom SCIP (from source)
 
@@ -100,6 +102,10 @@ Give it a shot using `pip install .` and let me know if it fails.
 And see output in:
 
 `build/lib.*`
+
+Or just
+
+`pip install .`
 
 # License
 
