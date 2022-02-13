@@ -47,15 +47,6 @@ namespace hf{
       );
 
 
-  //@depricated
-  SOLVECODE solve(
-      std::vector<size_t> &out_counts,
-      const std::vector<module> &mods,
-      const Bounds bounds=Bounds(),
-      const std::vector<module> required={} ,
-      const SolveOptions opts={}
-      );
-
   const char * version();
 
 }
