@@ -40,6 +40,11 @@ Most use cases are one of the following:
 
 As always, please feel free to file issues here with questions, suggestions, or bugs. 
 
+# Installation
+
+1. Install SCIP: [https://www.scipopt.org/download.php](https://www.scipopt.org/download.php)
+2. Get the .whl: `wget https://github.com/jodavaho/highfleet-ship-opt/raw/public-main/releases/hfopt-1.0.0-cp38-cp38-linux_x86_64.whl` and install it `pip install hfopt-1.0.0-cp38-cp38-linux_x86_64.whl`
+
 # Example
 
 The simplest example is as follows:
@@ -67,33 +72,26 @@ print("Here's the list of modules: ")
 d.dump_modules()
 ```
 
-# Build-Depends
+# Building 
 
 if you'd like to build the cli app, C/C++ library, or python library, we require a few things.
+
+## Requires: 
 
 - SCIP: `https://www.scipopt.org/download.php?fname=SCIPOptSuite-8.0.0-Linux-ubuntu.deb`
   - installed like this: `sudo apt install ./SCIPOptSuite-8.0.0-Linux-ubuntu.deb  --fix-broken`
 
-## hfopt (main executable)
-
-- Nothing extra
-
-## custom SCIP (from source)
+## OR, compile your own custom SCIP (from source)
 
 If you wish to build this repo and SCIP from source, we just need this: ` make scipoptlib SHARED=true`
 
-Then:
+## hfopt (main executable)
 
-```
-cp scip/lib/shared/libscip.so $(DEPS)
-cp scip/lib/static/libscip.a $(DEPS)
-```
-
-with `$(DEPS)=.deps/x86_64-linux-gnu/lib/`.
+- Nothing extra, just `make hfopt`
 
 ## For windows 
 
-Give it a shot using `pip install .` and let me know if it fails.
+Give it a shot using `pip install .` or the whl above, and let me know if it fails.
 
 ## Python libraries / bindings
 
