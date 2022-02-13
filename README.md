@@ -121,4 +121,3 @@ Since we do not copy, modify, or redistribute SCIP, all code in this repo is und
 4. Public github
 5. .deb installers
 6. PyPI
-7. 

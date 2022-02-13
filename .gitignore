@@ -1,3 +1,4 @@
+dist/
 build/
 hfopt_lib.cpython-*.so
 *.egg*
