@@ -1,2 +1,9 @@
+dist/
 build/
+hfopt_lib.cpython-*.so
+*.egg*
 .local*
+.hook*
+.deps
+venv
+__py*

@@ -1,0 +1,37 @@
+MIT License
+
+Copyright (c) 2022 Josh Vanderhook
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+This project makes use of the following libraries in an unmodified form, which
+must be installed on the system to execute the program:
+
+SCIP 8.0
+
+Bestuzheva, K., Besançon, M., Chen, W.K., Chmiela, A., Donkiewicz, T., van
+Doornmalen, J., Eifler, L., Gaul, O., Gamrath, G., Gleixner, A. and Gottwald,
+L., 2021. The SCIP Optimization Suite 8.0. arXiv preprint arXiv:2112.08872.
+
+SCIP is distributed under the ZIB Academic License. You are allowed to retrieve
+SCIP for research purposes as a member of a non-commercial or academic
+institution.  See 'ZIB.txt' for the full license. 
+
