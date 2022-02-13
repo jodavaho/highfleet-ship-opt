@@ -83,6 +83,9 @@ $(PYLIB): $(LIB) $(SLIB) src/py/hf/opt.py $(PYSRC) setup.py
 	cp $(PYSRCD)/hf/*.py $(PYOBJD)/hf
 	cp $(PYLIB) $(PYOBJD)/hf
 
+dist:
+	python3 -m build 
+
 clean:
 	rm -rf build/$(TARGET)/*
 	rm -rf $(PYOBJD)/*

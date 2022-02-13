@@ -17,11 +17,6 @@ library_dirs = ['.deps/x86_64-linux-gnu/lib','/lib','/usr/lib','/system/lib', '/
 #    extra_objects = ['{}/lib{}.a'.format(static_lib_dir, l) for l in static_libraries]
 
 module1 = Extension('hfopt_lib', 
-    headers = [ 
-        'src/py/hf-py.hpp',
-        'src/lib/modules.hpp', 
-        'src/lib/hf-problem.hpp',
-        ],
     sources = [
     'src/py/hf-py.cpp',
     'src/lib/modules.cpp', 
