@@ -45,7 +45,7 @@ Most use cases are one of the following:
 
 As always, please feel free to file issues here with questions, suggestions, or bugs. 
 
-**I especially need help verifying the stats of the output modules, once combined**. The math behind the game is notoriously opaque, and all the stats used were compiled from [reddit.com/r/highfleet](https://reddit.com/r/highfleet), esp `/u/d0d0b1rd` and `/u/twiliguard`. 
+**I especially need help verifying the stats of the output modules, once combined**. The math behind the game is notoriously opaque, and all the stats used were compiled from [reddit.com/r/highfleet](https://reddit.com/r/highfleet), esp `/u/d0d0b1rd` and `/u/twiglard`. 
 
 # Installation
 
