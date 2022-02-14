@@ -2,7 +2,7 @@
 
 Or, a cogitator for your dieselpunk legos.
 
-Highfleet is a game by Konstantin Koshutin, of Hammerflight fame. In that game
+Highfleet ([koshutin.com](koshutin.com)) is a game by Konstantin Koshutin, of Hammerflight fame. In that game
 you have to bulid, peice by peice, huge rocket-propelled fleets to fight above
 a primitive desert society. 
 The attention to detail is immaculate. Radio communications, electronic
@@ -11,13 +11,17 @@ iceburg. It's great fun, for engineers especially.
 
 What gets most people addicted, however, is the ship editing. You can create
 and build ships from a suprisingly few number of modules that become highly
-individualized / specialized. 
+individualized / specialized. This gif (from koshutin.com) shows the design loop perfectly:
+
+![Highfleet ship design from koshutin.com](http://koshutin.com/wp-content/uploads/2018/05/gif_design.gif)
 
 The most challenging part of building a *good* ship, is keeping the number of
 extra modules low, and selecting the appropriate modules to keep the cost low
 and performance high. 
 
-This code will help you.
+This code will help you. It looks like this:
+
+![image](https://user-images.githubusercontent.com/6580327/153905788-a8307fe4-17a4-469a-96b2-462e5448f550.png)
 
 This codebase selects modules from the game Highfleet, such that desired
 in-game statistics are satisfied. It does so optimally and fast, using
@@ -30,7 +34,7 @@ This library contains 3 things:
 3. Python wrappers (`pip install .`)
 
 This project is also hosted on [jodavaho.io/hf/opt](https://jodavaho.io/hf/opt)
-if you'd like to give it a shot (sorry about the primitive interface!)
+if you'd like to give it a shot (or will be shortly!)
 
 Most use cases are one of the following:
 
@@ -40,6 +44,8 @@ Most use cases are one of the following:
 
 As always, please feel free to file issues here with questions, suggestions, or bugs. 
 
+**I especially need help verifying the stats of the output modules, once combined**. The math behind the game is notoriously opaque, and all the stats used were compiled from [reddit.com/r/highfleet](https://reddit.com/r/highfleet), esp `/u/d0d0b1rd` and `/u/twiliguard`. 
+
 # Installation
 
 1. Install SCIP: [https://www.scipopt.org/download.php](https://www.scipopt.org/download.php)
@@ -47,7 +53,7 @@ As always, please feel free to file issues here with questions, suggestions, or 
 
 # Example
 
-The simplest example is as follows:
+The simplest example is as follows, which is pretty much as previous example:
 
 ```python
 import hf.opt as o
