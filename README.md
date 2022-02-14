@@ -2,7 +2,7 @@
 
 Or, a cogitator for your dieselpunk legos.
 
-Highfleet ([koshutin.com](koshutin.com)) is a game by Konstantin Koshutin, of Hammerflight fame. In that game
+Highfleet ([koshutin.com](http://koshutin.com/)) is a game by Konstantin Koshutin, of Hammerflight fame. In that game
 you have to bulid, peice by peice, huge rocket-propelled fleets to fight above
 a primitive desert society. 
 The attention to detail is immaculate. Radio communications, electronic
@@ -11,10 +11,11 @@ iceburg. It's great fun, for engineers especially.
 
 What gets most people addicted, however, is the ship editing. You can create
 and build ships from a suprisingly few number of modules that become highly
-individualized / specialized. This gif (from koshutin.com) shows the design loop perfectly:
+individualized / specialized. This gif (from [koshutin.com](http://koshutin.com/)) shows the design loop perfectly:
 
 ![Highfleet ship design from koshutin.com](http://koshutin.com/wp-content/uploads/2018/05/gif_design.gif)
 
+But seriously, check out that page, the game is beautiful.
 The most challenging part of building a *good* ship, is keeping the number of
 extra modules low, and selecting the appropriate modules to keep the cost low
 and performance high. 
