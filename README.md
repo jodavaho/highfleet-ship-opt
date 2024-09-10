@@ -1,13 +1,15 @@
+[![justforfunnoreally.dev badge](https://img.shields.io/badge/justforfunnoreally-dev-9ff)](https://justforfunnoreally.dev)
+
 # Highfleet ship optimizer
 
 Or, a cogitator for your dieselpunk legos.
 
 Highfleet ([koshutin.com](http://koshutin.com/)) is a game by Konstantin Koshutin, of Hammerflight fame. In that game
 you have to bulid, peice by peice, huge rocket-propelled fleets to fight above
-a primitive desert society. 
+a primitive desert society.
 The attention to detail is immaculate. Radio communications, electronic
 intelligence / warfare, and strike fleet management are just the tip of the
-iceburg. It's great fun, for engineers especially. 
+iceburg. It's great fun, for engineers especially.
 
 What gets most people addicted, however, is the ship editing. You can create
 and build ships from a suprisingly few number of modules that become highly
@@ -18,7 +20,7 @@ individualized / specialized. This gif (from [koshutin.com](http://koshutin.com/
 But seriously, check out that page, the game is beautiful.
 The most challenging part of building a *good* ship, is keeping the number of
 extra modules low, and selecting the appropriate modules to keep the cost low
-and performance high. 
+and performance high.
 
 This code will help you. It looks like this:
 
@@ -40,12 +42,12 @@ if you'd like to give it a shot (or will be shortly!)
 Most use cases are one of the following:
 
 - I have a number of weapons and sensor that I'd like to include, but don't know the best set of engines and support modules to optimally include them
-- I have a scout ship in mind, one that can go a certain speed and travel a certain range with a few sensors. 
+- I have a scout ship in mind, one that can go a certain speed and travel a certain range with a few sensors.
 - I'm curious what is the cheapest ship that can accomodate a given weapon or sensor, given a speed, weight, range, or other constraint
 
-As always, please feel free to file issues here with questions, suggestions, or bugs. 
+As always, please feel free to file issues here with questions, suggestions, or bugs.
 
-**I especially need help verifying the stats of the output modules, once combined**. The math behind the game is notoriously opaque, and all the stats used were compiled from [reddit.com/r/highfleet](https://reddit.com/r/highfleet), esp `/u/d0d0b1rd` and `/u/twiglard`. 
+**I especially need help verifying the stats of the output modules, once combined**. The math behind the game is notoriously opaque, and all the stats used were compiled from [reddit.com/r/highfleet](https://reddit.com/r/highfleet), esp `/u/d0d0b1rd` and `/u/twiglard`.
 
 # Installation
 
@@ -79,11 +81,11 @@ print("Here's the list of modules: ")
 d.dump_modules()
 ```
 
-# Building 
+# Building
 
 if you'd like to build the cli app, C/C++ library, or python library, we require a few things.
 
-## Requires: 
+## Requires:
 
 - SCIP: `https://www.scipopt.org/download.php?fname=SCIPOptSuite-8.0.0-Linux-ubuntu.deb`
   - installed like this: `sudo apt install ./SCIPOptSuite-8.0.0-Linux-ubuntu.deb  --fix-broken`
@@ -96,7 +98,7 @@ If you wish to build this repo and SCIP from source, we just need this: ` make s
 
 - Nothing extra, just `make hfopt`
 
-## For windows 
+## For windows
 
 Give it a shot using `pip install .` or the whl above, and let me know if it fails.
 
